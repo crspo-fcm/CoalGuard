@@ -5,7 +5,7 @@ import {
   Popup,
   TileLayer,
 } from "react-leaflet";
-
+import { API_BASE_URL } from "../api"; 
 import "leaflet/dist/leaflet.css";
 
 /* =========================================================
@@ -203,7 +203,7 @@ function MineMap() {
           fetch("/api/mines"),
           fetch("/api/inspections"),
           fetch("/api/locations"),
-          fetch("/api/violations"),
+         fetch(`${API_BASE_URL}/api/violations`),
         ]);
 
         const minesData =

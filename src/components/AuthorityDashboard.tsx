@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import AuditLedger from "./AuditLedger";
 import ComplianceReports from "./ComplianceReports";
 import MineMap from "./MineMap";
-
+import { API_BASE_URL } from "../api"; 
 /* =========================================================
    TYPES
 ========================================================= */
@@ -358,7 +358,7 @@ function AuthorityDashboard() {
         mineResponse,
       ] = await Promise.all([
         fetch("/api/inspections"),
-        fetch("/api/violations"),
+        fetch(`${API_BASE_URL}/api/violations`),
         fetch("/api/inspections/fraud-alerts"),
         fetch("/api/mines"),
       ]);
