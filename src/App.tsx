@@ -1,12 +1,22 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  type FormEvent,
+} from "react";
 
 import InspectorMobileView from "./components/InspectorMobileView";
 import ManagerDashboard from "./components/ManagerDashboard";
 import AuthorityDashboard from "./components/AuthorityDashboard";
 
-import { testBackend } from "./api";
+import {
+  testBackend,
+  API_BASE_URL,
+} from "./api";
 
-type UserRole = "inspector" | "manager" | "admin";
+type UserRole =
+  | "inspector"
+  | "manager"
+  | "admin";
 
 type LoggedInUser = {
   id: number;
@@ -19,28 +29,42 @@ function App() {
   const [user, setUser] =
     useState<LoggedInUser | null>(() => {
       const savedUser =
-        sessionStorage.getItem("coalguard_user");
+        sessionStorage.getItem(
+          "coalguard_user"
+        );
 
       if (!savedUser) {
         return null;
       }
 
       try {
-        return JSON.parse(savedUser);
+        return JSON.parse(
+          savedUser
+        ) as LoggedInUser;
       } catch {
-        sessionStorage.removeItem("coalguard_user");
+        sessionStorage.removeItem(
+          "coalguard_user"
+        );
+
         return null;
       }
     });
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] =
+    useState("");
+
+  const [password, setPassword] =
+    useState("");
 
   const [selectedRole, setSelectedRole] =
     useState<UserRole>("inspector");
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [loading, setLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
   const [backendOnline, setBackendOnline] =
     useState(false);
 
@@ -49,6 +73,8 @@ function App() {
   ========================================================= */
 
   useEffect(() => {
+    let active = true;
+
     testBackend()
       .then((data) => {
         console.log(
@@ -56,7 +82,9 @@ function App() {
           data
         );
 
-        setBackendOnline(true);
+        if (active) {
+          setBackendOnline(true);
+        }
       })
       .catch((error) => {
         console.error(
@@ -64,8 +92,14 @@ function App() {
           error
         );
 
-        setBackendOnline(false);
+        if (active) {
+          setBackendOnline(false);
+        }
       });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   /* =========================================================
@@ -73,15 +107,26 @@ function App() {
   ========================================================= */
 
   const handleLogin = async (
-    event: React.FormEvent<HTMLFormElement>
+    event: FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault();
 
     setError("");
 
-    if (!email.trim() || !password) {
+    if (
+      !email.trim() ||
+      !password
+    ) {
       setError(
         "Please enter your email and password."
+      );
+
+      return;
+    }
+
+    if (!backendOnline) {
+      setError(
+        "Backend is currently unavailable. Please try again."
       );
 
       return;
@@ -90,14 +135,23 @@ function App() {
     setLoading(true);
 
     try {
+      /*
+       * IMPORTANT:
+       * Production login goes directly to Render.
+       *
+       * https://coalguard.onrender.com/api/auth/login
+       */
+
       const response = await fetch(
-        "/api/auth/login",
+        `${API_BASE_URL}/api/auth/login`,
         {
           method: "POST",
+
           headers: {
             "Content-Type":
               "application/json",
           },
+
           body: JSON.stringify({
             email: email.trim(),
             password,
@@ -105,27 +159,69 @@ function App() {
         }
       );
 
-      const data = await response.json();
+      /*
+       * Don't blindly call response.json()
+       * if the server sends HTML or an empty response.
+       */
 
-      if (!response.ok || !data.success) {
+      const contentType =
+        response.headers.get(
+          "content-type"
+        ) || "";
+
+      if (
+        !contentType.includes(
+          "application/json"
+        )
+      ) {
+        throw new Error(
+          `Login server returned an invalid response (${response.status}).`
+        );
+      }
+
+      const data =
+        await response.json();
+
+      if (
+        !response.ok ||
+        !data.success
+      ) {
         throw new Error(
           data.message ||
             "Login failed."
         );
       }
 
-      const loggedInUser: LoggedInUser = {
-        id: Number(data.user.id),
-        name: data.user.name,
-        email: data.user.email,
-        role: String(
-          data.user.role
-        ).toLowerCase() as UserRole,
-      };
+      if (!data.user) {
+        throw new Error(
+          "Login succeeded but user information was not returned."
+        );
+      }
 
-      /* -------------------------------------------------------
-         CHECK ROLE
-      ------------------------------------------------------- */
+      const loggedInUser: LoggedInUser =
+        {
+          id: Number(
+            data.user.id
+          ),
+
+          name: String(
+            data.user.name ||
+              "CoalGuard User"
+          ),
+
+          email: String(
+            data.user.email ||
+              email.trim()
+          ),
+
+          role: String(
+            data.user.role
+          ).toLowerCase() as UserRole,
+        };
+
+      /* =====================================================
+         ROLE VALIDATION
+      ===================================================== */
 
       if (
         loggedInUser.role !==
@@ -138,14 +234,16 @@ function App() {
         );
       }
 
-      /* -------------------------------------------------------
+      /* =====================================================
          SAVE SESSION
-      ------------------------------------------------------- */
+      ===================================================== */
 
-      sessionStorage.setItem(
-        "coalguard_token",
-        data.token
-      );
+      if (data.token) {
+        sessionStorage.setItem(
+          "coalguard_token",
+          String(data.token)
+        );
+      }
 
       sessionStorage.setItem(
         "coalguard_user",
@@ -158,6 +256,7 @@ function App() {
 
       setEmail("");
       setPassword("");
+      setError("");
 
     } catch (loginError) {
       console.error(
@@ -170,7 +269,6 @@ function App() {
           ? loginError.message
           : "Unable to login."
       );
-
     } finally {
       setLoading(false);
     }
@@ -205,7 +303,6 @@ function App() {
         <div className="cg-topline" />
 
         <header className="cg-header">
-
           <div className="cg-header-inner">
 
             {/* LOGO */}
@@ -217,7 +314,6 @@ function App() {
               </div>
 
               <div>
-
                 <p className="cg-logo-title">
                   CoalGuard
                 </p>
@@ -226,11 +322,9 @@ function App() {
                   Mine Governance &
                   Compliance
                 </p>
-
               </div>
 
             </div>
-
 
             {/* USER INFORMATION */}
 
@@ -279,7 +373,6 @@ function App() {
 
               </div>
 
-
               <button
                 type="button"
                 onClick={
@@ -293,13 +386,7 @@ function App() {
             </div>
 
           </div>
-
         </header>
-
-
-        {/* =====================================================
-            APPLICATION
-        ===================================================== */}
 
         <main>
 
@@ -310,7 +397,6 @@ function App() {
             <InspectorMobileView />
           )}
 
-
           {/* MANAGER */}
 
           {user.role ===
@@ -318,8 +404,7 @@ function App() {
             <ManagerDashboard />
           )}
 
-
-          {/* AUTHORITY / ADMIN */}
+          {/* AUTHORITY */}
 
           {user.role ===
             "admin" && (
@@ -331,7 +416,6 @@ function App() {
       </div>
     );
   }
-
 
   /* =========================================================
      LOGIN SCREEN
@@ -370,8 +454,10 @@ function App() {
 
             <div
               style={{
-                display: "inline-flex",
-                alignItems: "center",
+                display:
+                  "inline-flex",
+                alignItems:
+                  "center",
                 gap: "12px",
               }}
             >
@@ -400,7 +486,6 @@ function App() {
             </div>
 
           </div>
-
 
           {/* LOGIN CARD */}
 
@@ -432,19 +517,20 @@ function App() {
                 workspace.
               </p>
 
-
               {/* BACKEND STATUS */}
 
               <div
                 style={{
                   marginTop: "18px",
-                  padding: "10px 12px",
+                  padding:
+                    "10px 12px",
                   border:
                     "1px solid var(--cg-border)",
                   background:
                     "var(--cg-surface)",
                   display: "flex",
-                  alignItems: "center",
+                  alignItems:
+                    "center",
                   gap: "8px",
                 }}
               >
@@ -453,7 +539,8 @@ function App() {
                   style={{
                     width: "7px",
                     height: "7px",
-                    borderRadius: "50%",
+                    borderRadius:
+                      "50%",
                     background:
                       backendOnline
                         ? "var(--cg-success)"
@@ -480,7 +567,6 @@ function App() {
 
               </div>
 
-
               {/* ROLE SELECTION */}
 
               <div
@@ -491,8 +577,10 @@ function App() {
 
                 <label
                   style={{
-                    display: "block",
-                    marginBottom: "9px",
+                    display:
+                      "block",
+                    marginBottom:
+                      "9px",
                     fontSize: "10px",
                     fontWeight: 700,
                     textTransform:
@@ -505,7 +593,6 @@ function App() {
                 >
                   Select your role
                 </label>
-
 
                 <div
                   className="cg-role-switch"
@@ -536,7 +623,6 @@ function App() {
                     👷 Inspector
                   </button>
 
-
                   {/* MANAGER */}
 
                   <button
@@ -558,7 +644,6 @@ function App() {
                   >
                     👔 Manager
                   </button>
-
 
                   {/* AUTHORITY */}
 
@@ -584,9 +669,6 @@ function App() {
 
                 </div>
 
-
-                {/* ROLE DESCRIPTION */}
-
                 <p
                   style={{
                     marginTop: "9px",
@@ -601,7 +683,6 @@ function App() {
                 </p>
 
               </div>
-
 
               {/* LOGIN FORM */}
 
@@ -621,8 +702,10 @@ function App() {
                   <label
                     htmlFor="coalguard-email"
                     style={{
-                      display: "block",
-                      marginBottom: "7px",
+                      display:
+                        "block",
+                      marginBottom:
+                        "7px",
                       fontSize: "10px",
                       fontWeight: 700,
                       textTransform:
@@ -640,9 +723,12 @@ function App() {
                     id="coalguard-email"
                     type="email"
                     value={email}
-                    onChange={(event) =>
+                    onChange={(
+                      event
+                    ) =>
                       setEmail(
-                        event.target.value
+                        event.target
+                          .value
                       )
                     }
                     placeholder="Enter your email"
@@ -659,12 +745,12 @@ function App() {
                         "var(--cg-bg)",
                       color:
                         "var(--cg-text)",
-                      outline: "none",
+                      outline:
+                        "none",
                     }}
                   />
 
                 </div>
-
 
                 {/* PASSWORD */}
 
@@ -677,8 +763,10 @@ function App() {
                   <label
                     htmlFor="coalguard-password"
                     style={{
-                      display: "block",
-                      marginBottom: "7px",
+                      display:
+                        "block",
+                      marginBottom:
+                        "7px",
                       fontSize: "10px",
                       fontWeight: 700,
                       textTransform:
@@ -696,9 +784,12 @@ function App() {
                     id="coalguard-password"
                     type="password"
                     value={password}
-                    onChange={(event) =>
+                    onChange={(
+                      event
+                    ) =>
                       setPassword(
-                        event.target.value
+                        event.target
+                          .value
                       )
                     }
                     placeholder="Enter your password"
@@ -715,33 +806,35 @@ function App() {
                         "var(--cg-bg)",
                       color:
                         "var(--cg-text)",
-                      outline: "none",
+                      outline:
+                        "none",
                     }}
                   />
 
                 </div>
-
 
                 {/* ERROR */}
 
                 {error && (
                   <div
                     style={{
-                      marginTop: "16px",
+                      marginTop:
+                        "16px",
                       padding:
                         "11px 13px",
                       border:
                         "1px solid rgba(239,68,68,.35)",
                       background:
                         "rgba(127,29,29,.15)",
-                      color: "#f87171",
-                      fontSize: "12px",
+                      color:
+                        "#f87171",
+                      fontSize:
+                        "12px",
                     }}
                   >
                     {error}
                   </div>
                 )}
-
 
                 {/* SUBMIT */}
 
@@ -751,7 +844,8 @@ function App() {
                   className="cg-button cg-button-primary"
                   style={{
                     width: "100%",
-                    marginTop: "20px",
+                    marginTop:
+                      "20px",
                     opacity:
                       loading
                         ? 0.65
@@ -765,13 +859,13 @@ function App() {
 
               </form>
 
-
               {/* SECURITY NOTE */}
 
               <div
                 style={{
                   marginTop: "20px",
-                  paddingTop: "16px",
+                  paddingTop:
+                    "16px",
                   borderTop:
                     "1px solid var(--cg-border)",
                 }}
@@ -805,7 +899,6 @@ function App() {
   );
 }
 
-
 /* =========================================================
    ROLE HELPERS
 ========================================================= */
@@ -830,7 +923,6 @@ function formatRole(
   }
 }
 
-
 function getRoleDescription(
   role: UserRole
 ): string {
@@ -850,6 +942,5 @@ function getRoleDescription(
       return "";
   }
 }
-
 
 export default App;
