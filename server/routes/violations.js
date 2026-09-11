@@ -113,9 +113,15 @@ router.get("/", (req, res) => {
             db.prepare(`
                 SELECT
                     v.*,
-                    i.observation AS inspection_observation,
-                    u.name AS inspector_name,
-                    l.name AS location_name
+
+                    i.observation
+                        AS inspection_observation,
+
+                    u.name
+                        AS inspector_name,
+
+                    l.name
+                        AS location_name
 
                 FROM violations v
 
@@ -209,14 +215,19 @@ router.get(
                     LEFT JOIN locations l
                         ON i.location_id = l.id
 
-                    WHERE LOWER(v.status) = 'resolved'
+                    WHERE LOWER(
+                        COALESCE(
+                            v.status,
+                            ''
+                        )
+                    ) = 'resolved'
 
                     ORDER BY
                         COALESCE(
                             v.verified_at,
-                            v.updated_at,
                             v.created_at
                         ) DESC
+
                 `).all();
 
 
@@ -242,7 +253,12 @@ router.get(
                 success: false,
 
                 message:
-                    "Failed to fetch resolved records"
+                    "Failed to fetch resolved records",
+
+                error:
+                    process.env.NODE_ENV === "development"
+                        ? error.message
+                        : undefined
 
             });
 
