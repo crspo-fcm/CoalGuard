@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 type VoiceRecorderProps = {
   inspectionId: string;
   onVoiceSaved?: () => void;
+  onTranscript?: (text: string) => void;
 };
 
 type SavedVoiceNote = {
@@ -19,6 +20,7 @@ const STORAGE_KEY = "coalguard_voice_notes";
 function VoiceRecorder({
   inspectionId,
   onVoiceSaved,
+  onTranscript,
 }: VoiceRecorderProps) {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -32,6 +34,7 @@ function VoiceRecorder({
     "Press START RECORDING and speak your observation."
   );
   const [notes, setNotes] = useState<SavedVoiceNote[]>([]);
+  const [transcript, setTranscript] = useState("");
 
   useEffect(() => {
     loadNotes();
@@ -73,6 +76,50 @@ function VoiceRecorder({
     } catch {
       setNotes([]);
     }
+  };
+
+  const transcribeWithWhisper = async (blob: Blob): Promise<string> => {
+    const formData = new FormData();
+
+    formData.append(
+      "audio",
+      blob,
+      `coalguard-voice-${Date.now()}.webm`
+    );
+
+    const response = await fetch(
+      "http://127.0.0.1:5001/transcribe",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      let message = `Whisper service returned HTTP ${response.status}.`;
+
+      try {
+        const errorData = await response.json();
+
+        if (errorData?.error) {
+          message = errorData.error;
+        }
+      } catch {
+        // Keep the HTTP error message.
+      }
+
+      throw new Error(message);
+    }
+
+    const data = await response.json();
+
+    if (!data?.success) {
+      throw new Error(
+        data?.error || "Whisper could not transcribe the recording."
+      );
+    }
+
+    return String(data.text || "").trim();
   };
 
   const startRecording = async () => {
@@ -133,7 +180,7 @@ function VoiceRecorder({
         );
       };
 
-      recorder.onstop = () => {
+      recorder.onstop = async () => {
         if (timerRef.current !== null) {
           window.clearInterval(timerRef.current);
           timerRef.current = null;
@@ -165,7 +212,36 @@ function VoiceRecorder({
           return;
         }
 
-        setStatus("Saving voice evidence...");
+        setStatus("Sending audio to Whisper for transcription...");
+
+        let whisperTranscript = "";
+
+        try {
+          whisperTranscript =
+            await transcribeWithWhisper(blob);
+
+          setTranscript(whisperTranscript);
+
+          if (onTranscript && whisperTranscript) {
+            onTranscript(whisperTranscript);
+          }
+
+          setStatus(
+            whisperTranscript
+              ? "Whisper transcription complete. Saving voice evidence..."
+              : "Whisper returned no text. Saving audio evidence..."
+          );
+        } catch (error) {
+          console.error("Whisper transcription failed:", error);
+
+          setTranscript("");
+
+          setStatus(
+            error instanceof Error
+              ? `Audio saved, but Whisper transcription failed: ${error.message}`
+              : "Audio saved, but Whisper transcription failed."
+          );
+        }
 
         const reader = new FileReader();
 
@@ -177,6 +253,7 @@ function VoiceRecorder({
             id: Date.now(),
             inspectionId,
             audio: audioData,
+            text: whisperTranscript,
             timestamp:
               new Date().toLocaleString(),
             duration: secondsRef.current,
@@ -212,7 +289,9 @@ function VoiceRecorder({
             setNotes(allNotes);
 
             setStatus(
-              "✅ Voice note saved and attached to this inspection."
+              whisperTranscript
+                ? "✅ Voice + Whisper transcript saved and attached to this inspection."
+                : "✅ Voice note saved. No transcript was available."
             );
 
             if (onVoiceSaved) {
@@ -235,7 +314,7 @@ function VoiceRecorder({
       setIsRecording(true);
       setSeconds(0);
       setStatus(
-        "🎙️ RECORDING — speak your observation."
+        "🎙️ RECORDING — speak your observation. Whisper transcription runs when you press STOP."
       );
 
       timerRef.current =
@@ -391,6 +470,23 @@ function VoiceRecorder({
         </p>
       </div>
 
+      <div className="mt-4 rounded-xl border border-cyan-400/20 bg-cyan-400/5 p-4">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-black text-cyan-300">
+            📝 WHISPER TRANSCRIPT
+          </span>
+
+          <span className="text-xs text-slate-500">
+            {transcript ? "TRANSCRIBED" : "WAITING"}
+          </span>
+        </div>
+
+        <p className="mt-3 min-h-[72px] rounded-lg bg-black/20 p-3 text-sm leading-6 text-slate-200">
+          {transcript ||
+            "Record your observation, press STOP, and Whisper will convert the audio into text here."}
+        </p>
+      </div>
+
       <div className="mt-4 rounded-xl border border-green-400/20 bg-green-400/5 p-4">
         <div className="flex items-center justify-between">
           <span className="text-sm text-slate-400">
@@ -432,12 +528,23 @@ function VoiceRecorder({
                       src={note.audio}
                       className="mt-3 w-full"
                     />
-                  ) : (
-                    <p className="mt-3 text-sm text-slate-300">
-                      {note.text ||
-                        "No audio data available."}
+                  ) : null}
+
+                  <div className="mt-3 rounded-xl border border-cyan-400/20 bg-cyan-400/5 p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase tracking-widest text-cyan-300">
+                        📝 WHISPER TEXT
+                      </span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                        Speech → Text
+                      </span>
+                    </div>
+
+                    <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-200">
+                      {note.text?.trim() ||
+                        "No Whisper text was saved for this voice note."}
                     </p>
-                  )}
+                  </div>
 
                   <div className="mt-3 flex items-center justify-between">
                     <span className="text-xs text-slate-500">
@@ -500,12 +607,23 @@ function VoiceRecorder({
                       src={note.audio}
                       className="mt-3 w-full"
                     />
-                  ) : (
-                    <p className="mt-3 text-sm text-slate-300">
-                      {note.text ||
-                        "Older voice note without audio."}
+                  ) : null}
+
+                  <div className="mt-3 rounded-xl border border-cyan-400/20 bg-cyan-400/5 p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase tracking-widest text-cyan-300">
+                        📝 WHISPER TEXT
+                      </span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                        Speech → Text
+                      </span>
+                    </div>
+
+                    <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-200">
+                      {note.text?.trim() ||
+                        "No Whisper text was saved for this voice note."}
                     </p>
-                  )}
+                  </div>
 
                   <div className="mt-3 flex items-center justify-end gap-3">
                     {note.audio && (

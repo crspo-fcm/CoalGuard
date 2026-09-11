@@ -30,7 +30,7 @@ function AuditLedger() {
   });
 
   const [verificationStatus, setVerificationStatus] = useState<
-    "Not Checked" | "Verified" | "Tamper Detected"
+    "Not Checked" | "Verified" | "Tamper Detected" | "Verification Error"
   >("Not Checked");
 
   const [isLoading, setIsLoading] = useState(true);
@@ -75,7 +75,7 @@ function AuditLedger() {
   const loadStats = async () => {
     try {
       const response = await fetch(
-        "/api/audit/stats"
+        `${API_BASE_URL}/api/audit/stats`
       );
 
       if (!response.ok) {
@@ -125,7 +125,7 @@ function AuditLedger() {
 
     try {
       const response = await fetch(
-        "/api/audit/verify"
+        `${API_BASE_URL}/api/audit/verify`
       );
 
       if (!response.ok) {
@@ -150,7 +150,7 @@ function AuditLedger() {
       );
 
       setVerificationStatus(
-        "Tamper Detected"
+        "Verification Error"
       );
     } finally {
       setIsVerifying(false);
@@ -317,6 +317,28 @@ function AuditLedger() {
 
             </div>
 
+          </div>
+        )}
+
+        {verificationStatus ===
+          "Verification Error" && (
+          <div className="rounded-xl border border-yellow-800 bg-yellow-950/30 p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-500/10 text-xl">
+                ⚠
+              </div>
+
+              <div>
+                <p className="font-bold text-yellow-400">
+                  VERIFICATION UNAVAILABLE
+                </p>
+
+                <p className="text-xs text-slate-400">
+                  The backend verification request failed. This does not mean
+                  the audit chain was tampered with.
+                </p>
+              </div>
+            </div>
           </div>
         )}
 

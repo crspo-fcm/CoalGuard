@@ -463,14 +463,20 @@ h6 {
 .cg-kpi-grid {
   display: grid;
 
+  /*
+   * Use only the columns actually needed by the KPI cards.
+   * This prevents an empty grey fifth column when a section
+   * contains four KPIs.
+   */
   grid-template-columns:
-    repeat(5, minmax(0, 1fr));
+    repeat(auto-fit, minmax(200px, 1fr));
 
   gap: 1px;
 
   margin: 22px 0;
 
-  background: var(--cg-border);
+  /* Empty grid space should remain black, not grey. */
+  background: var(--cg-bg);
 
   border: 1px solid var(--cg-border);
 }
@@ -1173,91 +1179,1251 @@ select:focus {
 
 
 /* =========================================================
-   COALGUARD FINAL VISUAL SAFETY LAYER
-   Ensures Inspector + Manager share the same visual system.
+   COALGUARD — LIGHT THEME
+   Activated by App.tsx with [data-theme="light"].
+   Warm beige/cream, while preserving the CoalGuard gold accent.
    ========================================================= */
 
-html,
-body,
-#root {
-  background: #0b0d0e !important;
-  color: #e5e1d8 !important;
+html[data-theme="light"] {
+  --cg-bg: #f3eee5;
+  --cg-surface: #fbf8f2;
+  --cg-surface-2: #eee7db;
+  --cg-surface-3: #e4dbcc;
+
+  --cg-text: #26231f;
+  --cg-text-secondary: #6d675f;
+  --cg-text-disabled: #9a9389;
+
+  --cg-accent: #a9682f;
+  --cg-accent-light: #b9824a;
+
+  --cg-success: #52734b;
+  --cg-warning: #a9682f;
+  --cg-danger: #9b4e45;
+
+  --cg-border: #d7cec0;
+  --cg-divider: #e1d9cd;
+  --cg-hover: #e8dfd2;
+  --cg-focus: #b9ad9d;
+
+  --cg-icon: #4e4942;
+  --cg-terrain: #cdbb9f;
+  --cg-sidebar: #e9e1d5;
+  --cg-table-row: #f0e9de;
 }
 
-.cg-app {
-  min-height: 100vh !important;
-  background: #0b0d0e !important;
-  color: #e5e1d8 !important;
+html[data-theme="light"],
+html[data-theme="light"] body {
+  background: var(--cg-bg);
+  color: var(--cg-text);
 }
 
-.cg-header {
-  background: #101315 !important;
-  border-color: #2a3133 !important;
+html[data-theme="light"] .cg-header {
+  background: #eee7dc;
 }
 
-.cg-main,
-.cg-layout {
-  background: #0b0d0e !important;
+html[data-theme="light"] .cg-logo-mark {
+  color: #fffaf2;
 }
 
-.cg-panel {
-  background: #121618 !important;
-  border-color: #2a3133 !important;
+html[data-theme="light"] .cg-role-switch {
+  background: #e2d9cc;
 }
 
-.cg-panel-header {
-  background: #151a1c !important;
-  border-color: #2a3133 !important;
+html[data-theme="light"] .cg-role-button.active {
+  color: #fffaf2;
 }
 
-.cg-button-primary {
-  background: #b87333 !important;
-  border-color: #b87333 !important;
-  color: #0b0d0e !important;
+html[data-theme="light"] .cg-sidebar {
+  background: var(--cg-sidebar);
 }
 
-.cg-button-primary:hover {
-  background: #d6a85f !important;
-  border-color: #d6a85f !important;
+html[data-theme="light"] .cg-sidebar-section {
+  color: #81796f;
 }
 
-.cg-accent-text {
-  color: #d6a85f !important;
+html[data-theme="light"] .cg-sidebar-item {
+  color: #686158;
 }
 
-.cg-sidebar {
-  background: #14181a !important;
-  border-color: #2a3133 !important;
+html[data-theme="light"] .cg-sidebar-item span {
+  color: #8d857b;
 }
 
-.cg-role-switch {
-  background: #0b0d0e !important;
-  border-color: #2a3133 !important;
+html[data-theme="light"] .cg-sidebar-item:hover {
+  background: var(--cg-hover);
+  color: var(--cg-text);
 }
 
-.cg-role-button.active {
-  background: #b87333 !important;
-  color: #0b0d0e !important;
+html[data-theme="light"] .cg-sidebar-item.active {
+  background: #ddd3c5;
+  color: var(--cg-text);
 }
 
-.cg-table th {
-  background: #1a2022 !important;
+html[data-theme="light"] .cg-panel-header {
+  background: #f0e9df;
 }
 
-.cg-table td {
-  background: #121618 !important;
-  border-color: #1f2527 !important;
+html[data-theme="light"] .cg-status {
+  background: #eee7dc;
 }
 
-input,
-textarea,
-select {
-  background: #151a1c !important;
-  color: #e5e1d8 !important;
-  border-color: #2a3133 !important;
+html[data-theme="light"] .cg-bar {
+  background: #ddd4c7;
 }
 
-h1,h2,h3,h4,h5,h6 {
-  font-family: Georgia, "Times New Roman", serif !important;
-  color: #e5e1d8 !important;
+html[data-theme="light"] .cg-table th {
+  background: #e9e1d6;
+  color: #706960;
 }
+
+html[data-theme="light"] .cg-table td {
+  background: var(--cg-surface);
+}
+
+html[data-theme="light"] .cg-table tbody tr:hover td {
+  background: var(--cg-table-row);
+  color: var(--cg-text);
+}
+
+html[data-theme="light"] .cg-button {
+  border-color: #bfb5a8;
+}
+
+html[data-theme="light"] .cg-button:hover {
+  background: var(--cg-hover);
+  border-color: #a99f92;
+}
+
+html[data-theme="light"] .cg-button-primary,
+html[data-theme="light"] .cg-role-button.active {
+  color: #fffaf2;
+}
+
+html[data-theme="light"] input,
+html[data-theme="light"] textarea,
+html[data-theme="light"] select {
+  background: #fbf8f2 !important;
+  color: var(--cg-text) !important;
+  border-color: var(--cg-border) !important;
+}
+
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder {
+  color: #999187;
+}
+
+html[data-theme="light"] .leaflet-container {
+  background: #e7dfd3 !important;
+}
+
+html[data-theme="light"] .leaflet-popup-content-wrapper,
+html[data-theme="light"] .leaflet-popup-tip {
+  background: #fbf8f2;
+  color: var(--cg-text);
+  border-color: var(--cg-border);
+}
+
+html[data-theme="light"] .leaflet-popup-content {
+  color: var(--cg-text);
+}
+
+html[data-theme="light"] .leaflet-control-zoom a {
+  background: #fbf8f2 !important;
+  color: var(--cg-text) !important;
+  border-color: var(--cg-border) !important;
+}
+
+html[data-theme="light"] .leaflet-control-zoom a:hover {
+  background: var(--cg-hover) !important;
+}
+
+html[data-theme="light"] ::-webkit-scrollbar-track {
+  background: var(--cg-bg);
+}
+
+html[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: #b9b0a4;
+}
+
+html[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: #9f968a;
+}
+
+/* Tailwind colour compatibility in light mode.
+   These overrides let existing components switch without
+   rewriting all of their JSX classes. */
+html[data-theme="light"] .bg-slate-950 {
+  background-color: var(--cg-bg) !important;
+}
+
+html[data-theme="light"] .bg-slate-900 {
+  background-color: var(--cg-surface) !important;
+}
+
+html[data-theme="light"] .bg-slate-800 {
+  background-color: var(--cg-surface-2) !important;
+}
+
+html[data-theme="light"] .bg-slate-700 {
+  background-color: var(--cg-surface-3) !important;
+}
+
+html[data-theme="light"] .border-slate-800 {
+  border-color: var(--cg-border) !important;
+}
+
+html[data-theme="light"] .border-slate-700 {
+  border-color: #c9c0b3 !important;
+}
+
+html[data-theme="light"] .border-slate-600 {
+  border-color: #b8aea1 !important;
+}
+
+html[data-theme="light"] .text-slate-100 {
+  color: var(--cg-text) !important;
+}
+
+html[data-theme="light"] .text-slate-200 {
+  color: #403b35 !important;
+}
+
+html[data-theme="light"] .text-slate-300 {
+  color: #5f5951 !important;
+}
+
+html[data-theme="light"] .text-slate-400 {
+  color: var(--cg-text-secondary) !important;
+}
+
+html[data-theme="light"] .text-slate-500 {
+  color: #81796f !important;
+}
+
+html[data-theme="light"] .text-slate-600 {
+  color: #938a7f !important;
+}
+
+
+/* =========================================================
+   LIGHT THEME — INSPECTOR / CUSTOM COMPONENT OVERRIDES
+   ========================================================= */
+
+html[data-theme="light"] .cg-inspector-main,
+html[data-theme="light"] .cg-inspector-content,
+html[data-theme="light"] .cg-inspector-page {
+  background: var(--cg-bg) !important;
+  color: var(--cg-text) !important;
+}
+
+html[data-theme="light"] .cg-inspector-main h1,
+html[data-theme="light"] .cg-inspector-main h2,
+html[data-theme="light"] .cg-inspector-main h3,
+html[data-theme="light"] .cg-inspector-main h4,
+html[data-theme="light"] .cg-inspector-main p,
+html[data-theme="light"] .cg-inspector-main span,
+html[data-theme="light"] .cg-inspector-main label {
+  color: var(--cg-text);
+}
+
+html[data-theme="light"] .cg-inspector-main .text-slate-100,
+html[data-theme="light"] .cg-inspector-main .text-slate-200 {
+  color: var(--cg-text) !important;
+}
+
+html[data-theme="light"] .cg-inspector-main .text-slate-300,
+html[data-theme="light"] .cg-inspector-main .text-slate-400,
+html[data-theme="light"] .cg-inspector-main .text-slate-500 {
+  color: var(--cg-text-secondary) !important;
+}
+
+/* Inspector cards / records */
+html[data-theme="light"] .cg-inspector-main .bg-slate-950,
+html[data-theme="light"] .cg-inspector-main .bg-slate-900,
+html[data-theme="light"] .cg-inspector-main .bg-slate-800 {
+  background-color: var(--cg-surface) !important;
+}
+
+html[data-theme="light"] .cg-inspector-main .border-slate-800,
+html[data-theme="light"] .cg-inspector-main .border-slate-700,
+html[data-theme="light"] .cg-inspector-main .border-slate-600 {
+  border-color: var(--cg-border) !important;
+}
+
+/* Header logo/title must remain readable on cream */
+html[data-theme="light"] .cg-logo-title {
+  color: #26231f !important;
+}
+
+html[data-theme="light"] .cg-logo-subtitle {
+  color: #6d675f !important;
+}
+
+/* Global header controls */
+html[data-theme="light"] .cg-header .cg-role-button {
+  color: #4e4942;
+}
+
+html[data-theme="light"] .cg-header .cg-role-button:hover {
+  color: #26231f;
+  background: #e4dbcc;
+}
+
+/* Any full-screen/modal backdrop should remain a backdrop,
+   while the modal itself stays cream. */
+html[data-theme="light"] .fixed.inset-0 {
+  background-color: rgba(38, 35, 31, 0.42);
+}
+/* =========================================================
+   LIGHT THEME — FINAL CONTRAST / CARD FIX
+   ========================================================= */
+
+/* Main content background */
+html[data-theme="light"] .cg-inspector-main,
+html[data-theme="light"] .cg-inspector-content {
+  background: #f3eee5 !important;
+}
+
+/* Replace the remaining BLACK/DARK cards with the same
+   soft grey used by the rest of the light UI */
+html[data-theme="light"] .cg-inspector-main .bg-slate-950,
+html[data-theme="light"] .cg-inspector-main .bg-slate-900,
+html[data-theme="light"] .cg-inspector-main .bg-slate-800,
+html[data-theme="light"] .cg-inspector-main [class*="bg-slate-950"],
+html[data-theme="light"] .cg-inspector-main [class*="bg-slate-900"],
+html[data-theme="light"] .cg-inspector-main [class*="bg-slate-800"] {
+  background: #e4dfd6 !important;
+  color: #292722 !important;
+}
+
+/* Inspection cards / panels */
+html[data-theme="light"] .cg-inspector-main section,
+html[data-theme="light"] .cg-inspector-main article {
+  color: #292722;
+}
+
+/* Make headings readable */
+html[data-theme="light"] .cg-inspector-main h1,
+html[data-theme="light"] .cg-inspector-main h2,
+html[data-theme="light"] .cg-inspector-main h3,
+html[data-theme="light"] .cg-inspector-main h4,
+html[data-theme="light"] .cg-inspector-main strong {
+  color: #292722 !important;
+}
+
+/* Normal text */
+html[data-theme="light"] .cg-inspector-main p,
+html[data-theme="light"] .cg-inspector-main span,
+html[data-theme="light"] .cg-inspector-main label {
+  color: #5f5951;
+}
+
+/* =========================================================
+   BLUE TEXT — CHANGE TO DARK, READABLE BLUE/CHARCOAL
+   ========================================================= */
+
+html[data-theme="light"] .text-blue-300,
+html[data-theme="light"] .text-blue-400,
+html[data-theme="light"] .text-blue-500,
+html[data-theme="light"] .text-blue-600,
+html[data-theme="light"] [class*="text-blue-"] {
+  color: #315b73 !important;
+}
+
+/* Blue badges */
+html[data-theme="light"] [class*="bg-blue-"] {
+  background: #d8e1e6 !important;
+  color: #315b73 !important;
+}
+
+/* Blue borders */
+html[data-theme="light"] [class*="border-blue-"] {
+  border-color: #9eafb9 !important;
+}
+
+/* =========================================================
+   GREEN / RED / AMBER STATUS TEXT
+   ========================================================= */
+
+html[data-theme="light"] .text-green-300,
+html[data-theme="light"] .text-green-400,
+html[data-theme="light"] .text-green-500,
+html[data-theme="light"] .text-green-600 {
+  color: #3f6945 !important;
+}
+
+html[data-theme="light"] .text-red-300,
+html[data-theme="light"] .text-red-400,
+html[data-theme="light"] .text-red-500,
+html[data-theme="light"] .text-red-600 {
+  color: #93483f !important;
+}
+
+html[data-theme="light"] .text-yellow-300,
+html[data-theme="light"] .text-yellow-400,
+html[data-theme="light"] .text-yellow-500,
+html[data-theme="light"] .text-yellow-600 {
+  color: #8a641c !important;
+}
+
+/* =========================================================
+   INPUTS / SELECTS
+   ========================================================= */
+
+html[data-theme="light"] .cg-inspector-main input,
+html[data-theme="light"] .cg-inspector-main textarea,
+html[data-theme="light"] .cg-inspector-main select {
+  background: #f8f4ed !important;
+  color: #292722 !important;
+  border-color: #c9c0b4 !important;
+}
+
+html[data-theme="light"] .cg-inspector-main input::placeholder,
+html[data-theme="light"] .cg-inspector-main textarea::placeholder {
+  color: #827a70 !important;
+}
+
+/* =========================================================
+   DARK CARD TEXT OVERRIDE
+   Prevent inherited dark-theme text from becoming invisible
+   ========================================================= */
+
+html[data-theme="light"] .cg-inspector-main .bg-slate-950 *,
+html[data-theme="light"] .cg-inspector-main .bg-slate-900 *,
+html[data-theme="light"] .cg-inspector-main .bg-slate-800 * {
+  color: inherit;
+}
+
+/* But keep status/accent colors */
+html[data-theme="light"] .cg-inspector-main .text-blue-300,
+html[data-theme="light"] .cg-inspector-main .text-blue-400,
+html[data-theme="light"] .cg-inspector-main .text-blue-500,
+html[data-theme="light"] .cg-inspector-main .text-green-300,
+html[data-theme="light"] .cg-inspector-main .text-green-400,
+html[data-theme="light"] .cg-inspector-main .text-red-300,
+html[data-theme="light"] .cg-inspector-main .text-red-400,
+html[data-theme="light"] .cg-inspector-main .text-yellow-300,
+html[data-theme="light"] .cg-inspector-main .text-yellow-400 {
+  color: inherit;
+}
+/* =========================================================
+   COALGUARD LIGHT THEME — MANAGER CONTRAST FIX
+   ========================================================= */
+
+/* ---------- WHITE TEXT → DARK TEXT ---------- */
+
+html[data-theme="light"] .cg-manager-main .text-white,
+html[data-theme="light"] .cg-manager-main [class*="text-white"] {
+  color: #292722 !important;
+}
+
+/* Catch white text inside manager cards */
+html[data-theme="light"] .cg-manager-main .bg-slate-950 *,
+html[data-theme="light"] .cg-manager-main .bg-slate-900 *,
+html[data-theme="light"] .cg-manager-main .bg-slate-800 * {
+  color: #292722;
+}
+
+/* ---------- BLUE / PURPLE TEXT → READABLE BLUE ---------- */
+
+html[data-theme="light"] .cg-manager-main .text-blue-300,
+html[data-theme="light"] .cg-manager-main .text-blue-400,
+html[data-theme="light"] .cg-manager-main .text-blue-500,
+html[data-theme="light"] .cg-manager-main .text-indigo-300,
+html[data-theme="light"] .cg-manager-main .text-indigo-400,
+html[data-theme="light"] .cg-manager-main .text-purple-300,
+html[data-theme="light"] .cg-manager-main .text-purple-400 {
+  color: #315b73 !important;
+}
+
+/* ---------- RECOMMENDATION BOX ---------- */
+
+html[data-theme="light"] .cg-manager-main [class*="border-purple"],
+html[data-theme="light"] .cg-manager-main [class*="border-blue"] {
+  border-color: #9eafb9 !important;
+}
+
+html[data-theme="light"] .cg-manager-main [class*="bg-purple"],
+html[data-theme="light"] .cg-manager-main [class*="bg-blue"] {
+  background: #dce5e9 !important;
+}
+
+/* Text inside recommendation/status boxes */
+html[data-theme="light"] .cg-manager-main [class*="bg-purple"] *,
+html[data-theme="light"] .cg-manager-main [class*="bg-blue"] * {
+  color: #315b73 !important;
+}
+
+/* ---------- MANAGER INSPECTION CARDS ---------- */
+
+html[data-theme="light"] .cg-manager-main .bg-slate-900,
+html[data-theme="light"] .cg-manager-main .bg-slate-800 {
+  background: #e4dfd6 !important;
+  border-color: #c9c0b4 !important;
+}
+
+/* Inspection title */
+html[data-theme="light"] .cg-manager-main h1,
+html[data-theme="light"] .cg-manager-main h2,
+html[data-theme="light"] .cg-manager-main h3,
+html[data-theme="light"] .cg-manager-main h4 {
+  color: #292722 !important;
+}
+
+/* Normal manager text */
+html[data-theme="light"] .cg-manager-main p,
+html[data-theme="light"] .cg-manager-main label {
+  color: #5f5951 !important;
+}
+
+/* ---------- KEEP STATUS COLOURS ---------- */
+
+html[data-theme="light"] .cg-manager-main .text-red-400,
+html[data-theme="light"] .cg-manager-main .text-red-500 {
+  color: #93483f !important;
+}
+
+html[data-theme="light"] .cg-manager-main .text-green-400,
+html[data-theme="light"] .cg-manager-main .text-green-500 {
+  color: #3f6945 !important;
+}
+
+html[data-theme="light"] .cg-manager-main .text-yellow-400,
+html[data-theme="light"] .cg-manager-main .text-yellow-500 {
+  color: #8a641c !important;
+}
+
+/* ---------- DELETE BUTTON ---------- */
+
+html[data-theme="light"] .cg-manager-main button {
+  color: #403b35;
+}
+
+html[data-theme="light"] .cg-manager-main button:hover {
+  color: #292722;
+}
+/* =========================================================
+   LIGHT THEME — CHANGE BLACK INSPECTOR PANELS TO GREY
+   ========================================================= */
+
+html[data-theme="light"] .cg-inspector-main .bg-black,
+html[data-theme="light"] .cg-inspector-main .bg-slate-950,
+html[data-theme="light"] .cg-inspector-main .bg-slate-900,
+html[data-theme="light"] .cg-inspector-main .bg-neutral-900 {
+  background-color: #e4dfd6 !important;
+  color: #292722 !important;
+}
+
+/* Anything inside those panels */
+html[data-theme="light"] .cg-inspector-main .bg-black *,
+html[data-theme="light"] .cg-inspector-main .bg-slate-950 *,
+html[data-theme="light"] .cg-inspector-main .bg-slate-900 *,
+html[data-theme="light"] .cg-inspector-main .bg-neutral-900 * {
+  color: #292722 !important;
+}
+
+/* Readable secondary text */
+html[data-theme="light"] .cg-inspector-main .text-slate-300,
+html[data-theme="light"] .cg-inspector-main .text-slate-400,
+html[data-theme="light"] .cg-inspector-main .text-slate-500 {
+  color: #625c54 !important;
+}
+
+/* Blue text — dark readable blue */
+html[data-theme="light"] .cg-inspector-main .text-blue-300,
+html[data-theme="light"] .cg-inspector-main .text-blue-400,
+html[data-theme="light"] .cg-inspector-main .text-blue-500,
+html[data-theme="light"] .cg-inspector-main .text-cyan-300,
+html[data-theme="light"] .cg-inspector-main .text-cyan-400,
+html[data-theme="light"] .cg-inspector-main .text-cyan-500 {
+  color: #315b73 !important;
+}
+
+/* Purple text */
+html[data-theme="light"] .cg-inspector-main .text-purple-300,
+html[data-theme="light"] .cg-inspector-main .text-purple-400,
+html[data-theme="light"] .cg-inspector-main .text-purple-500 {
+  color: #604c79 !important;
+}
+
+/* Borders */
+html[data-theme="light"] .cg-inspector-main .border-slate-700,
+html[data-theme="light"] .cg-inspector-main .border-slate-800,
+html[data-theme="light"] .cg-inspector-main .border-slate-600 {
+  border-color: #c9c0b4 !important;
+}
+
+/* Buttons/cards that explicitly use black */
+html[data-theme="light"] .cg-inspector-main [class*="bg-black"] {
+  background-color: #e4dfd6 !important;
+  color: #292722 !important;
+}
+/* =========================================================
+   COALGUARD LIGHT MODE — MANAGER CONTRAST FIX
+   ========================================================= */
+
+/* WHITE TEXT ON MANAGER CARDS */
+html[data-theme="light"] .text-white {
+  color: #292722 !important;
+}
+
+/* INSPECTION TITLES */
+html[data-theme="light"] h1,
+html[data-theme="light"] h2,
+html[data-theme="light"] h3,
+html[data-theme="light"] h4 {
+  color: #292722 !important;
+}
+
+/* RECOMMENDATION TEXT — DARK READABLE BLUE */
+html[data-theme="light"] .text-indigo-300,
+html[data-theme="light"] .text-indigo-400,
+html[data-theme="light"] .text-indigo-500,
+html[data-theme="light"] .text-purple-300,
+html[data-theme="light"] .text-purple-400,
+html[data-theme="light"] .text-purple-500 {
+  color: #315b73 !important;
+}
+
+/* RECOMMENDATION BACKGROUND */
+html[data-theme="light"] .bg-indigo-900,
+html[data-theme="light"] .bg-purple-900,
+html[data-theme="light"] .bg-indigo-950,
+html[data-theme="light"] .bg-purple-950 {
+  background-color: #dce5e9 !important;
+}
+
+/* RECOMMENDATION BORDER */
+html[data-theme="light"] .border-indigo-700,
+html[data-theme="light"] .border-indigo-800,
+html[data-theme="light"] .border-purple-700,
+html[data-theme="light"] .border-purple-800 {
+  border-color: #9eafb9 !important;
+}
+
+/* ANY LIGHT-PURPLE TEXT */
+html[data-theme="light"] [class*="text-purple-"] {
+  color: #315b73 !important;
+}
+
+html[data-theme="light"] [class*="text-indigo-"] {
+  color: #315b73 !important;
+}
+
+/* KEEP THE MANAGER CARD GREY */
+html[data-theme="light"] [class*="bg-slate-900"],
+html[data-theme="light"] [class*="bg-slate-800"],
+html[data-theme="light"] [class*="bg-slate-950"] {
+  background-color: #e4dfd6 !important;
+}
+
+/* SECONDARY TEXT */
+html[data-theme="light"] .text-slate-300 {
+  color: #514c45 !important;
+}
+
+html[data-theme="light"] .text-slate-400 {
+  color: #625c54 !important;
+}
+
+html[data-theme="light"] .text-slate-500 {
+  color: #756e65 !important;
+}
+/* =========================================================
+   COALGUARD — FINAL LIGHT MODE FIX
+   ========================================================= */
+
+/* ---------- BASE LIGHT MODE ---------- */
+
+html[data-theme="light"],
+html[data-theme="light"] body {
+  background: #f3eee5 !important;
+  color: #292722 !important;
+}
+
+/* ---------- HEADINGS ---------- */
+
+html[data-theme="light"] h1,
+html[data-theme="light"] h2,
+html[data-theme="light"] h3,
+html[data-theme="light"] h4,
+html[data-theme="light"] h5,
+html[data-theme="light"] h6 {
+  color: #292722 !important;
+}
+
+/* ---------- NORMAL TEXT ---------- */
+
+html[data-theme="light"] p,
+html[data-theme="light"] label {
+  color: #5f5951 !important;
+}
+
+/* =========================================================
+   WHITE TEXT
+   ========================================================= */
+
+html[data-theme="light"] .text-white,
+html[data-theme="light"] [class*="text-white"] {
+  color: #292722 !important;
+}
+
+/* =========================================================
+   MANAGER SIDEBAR
+   ========================================================= */
+
+html[data-theme="light"] .cg-sidebar {
+  background: #e9e1d5 !important;
+  border-right-color: #d7cec0 !important;
+}
+
+html[data-theme="light"] .cg-sidebar-item {
+  background: transparent !important;
+  color: #514c45 !important;
+}
+
+html[data-theme="light"] .cg-sidebar-item span {
+  color: #756e65 !important;
+}
+
+html[data-theme="light"] .cg-sidebar-item:hover {
+  background: #e4dfd6 !important;
+  color: #292722 !important;
+}
+
+html[data-theme="light"] .cg-sidebar-item.active {
+  background: #e4dfd6 !important;
+  color: #292722 !important;
+  border-left-color: #a9682f !important;
+}
+
+html[data-theme="light"] .cg-sidebar-item.active span {
+  color: #a9682f !important;
+}
+
+/* =========================================================
+   GREY CARDS
+   ========================================================= */
+
+html[data-theme="light"] [class*="bg-slate-950"],
+html[data-theme="light"] [class*="bg-slate-900"],
+html[data-theme="light"] [class*="bg-slate-800"] {
+  background-color: #e4dfd6 !important;
+}
+
+/* All normal text inside grey cards */
+
+html[data-theme="light"] [class*="bg-slate-950"] *,
+html[data-theme="light"] [class*="bg-slate-900"] *,
+html[data-theme="light"] [class*="bg-slate-800"] * {
+  color: #292722;
+}
+
+/* Secondary text */
+
+html[data-theme="light"] [class*="bg-slate-950"] .text-slate-400,
+html[data-theme="light"] [class*="bg-slate-900"] .text-slate-400,
+html[data-theme="light"] [class*="bg-slate-800"] .text-slate-400 {
+  color: #625c54 !important;
+}
+
+/* =========================================================
+   BLUE TEXT
+   ========================================================= */
+
+/* Replace unreadable light blue with dark readable blue */
+
+html[data-theme="light"] [class*="text-blue-"],
+html[data-theme="light"] [class*="text-cyan-"],
+html[data-theme="light"] [class*="text-indigo-"],
+html[data-theme="light"] [class*="text-purple-"],
+html[data-theme="light"] [class*="text-violet-"] {
+  color: #315b73 !important;
+}
+
+/* =========================================================
+   BLUE / PURPLE BOXES
+   ========================================================= */
+
+html[data-theme="light"] [class*="bg-blue-"],
+html[data-theme="light"] [class*="bg-cyan-"],
+html[data-theme="light"] [class*="bg-indigo-"],
+html[data-theme="light"] [class*="bg-purple-"],
+html[data-theme="light"] [class*="bg-violet-"] {
+  background-color: #dce5e9 !important;
+  color: #315b73 !important;
+}
+
+html[data-theme="light"] [class*="bg-blue-"] *,
+html[data-theme="light"] [class*="bg-cyan-"] *,
+html[data-theme="light"] [class*="bg-indigo-"] *,
+html[data-theme="light"] [class*="bg-purple-"] *,
+html[data-theme="light"] [class*="bg-violet-"] * {
+  color: #315b73 !important;
+}
+
+/* =========================================================
+   BLUE / PURPLE BORDERS
+   ========================================================= */
+
+html[data-theme="light"] [class*="border-blue-"],
+html[data-theme="light"] [class*="border-cyan-"],
+html[data-theme="light"] [class*="border-indigo-"],
+html[data-theme="light"] [class*="border-purple-"],
+html[data-theme="light"] [class*="border-violet-"] {
+  border-color: #9eafb9 !important;
+}
+
+/* =========================================================
+   RISK COLOURS
+   ========================================================= */
+
+html[data-theme="light"] [class*="text-red-"] {
+  color: #93483f !important;
+}
+
+html[data-theme="light"] [class*="text-green-"] {
+  color: #3f6945 !important;
+}
+
+html[data-theme="light"] [class*="text-yellow-"],
+html[data-theme="light"] [class*="text-amber-"] {
+  color: #8a641c !important;
+}
+
+/* =========================================================
+   MANAGER INSPECTION CARDS
+   ========================================================= */
+
+html[data-theme="light"] .cg-main {
+  background: #f3eee5 !important;
+}
+
+html[data-theme="light"] .cg-panel {
+  background: #fbf8f2 !important;
+  border-color: #d7cec0 !important;
+}
+
+html[data-theme="light"] .cg-panel-header {
+  background: #eee7dc !important;
+}
+
+html[data-theme="light"] .cg-panel-title {
+  color: #292722 !important;
+}
+
+html[data-theme="light"] .cg-panel-subtitle {
+  color: #6d675f !important;
+}
+
+/* =========================================================
+   RECOMMENDATION BOX
+   ========================================================= */
+
+html[data-theme="light"] [class*="bg-purple-900"],
+html[data-theme="light"] [class*="bg-purple-950"],
+html[data-theme="light"] [class*="bg-indigo-900"],
+html[data-theme="light"] [class*="bg-indigo-950"] {
+  background: #dce5e9 !important;
+  border-color: #9eafb9 !important;
+}
+
+html[data-theme="light"] [class*="bg-purple-900"] *,
+html[data-theme="light"] [class*="bg-purple-950"] *,
+html[data-theme="light"] [class*="bg-indigo-900"] *,
+html[data-theme="light"] [class*="bg-indigo-950"] * {
+  color: #315b73 !important;
+}
+
+/* =========================================================
+   TABLES
+   ========================================================= */
+
+html[data-theme="light"] .cg-table {
+  color: #292722 !important;
+}
+
+html[data-theme="light"] .cg-table th {
+  background: #e9e1d6 !important;
+  color: #514c45 !important;
+}
+
+html[data-theme="light"] .cg-table td {
+  background: #fbf8f2 !important;
+  color: #625c54 !important;
+}
+
+html[data-theme="light"] .cg-table tbody tr:hover td {
+  background: #f0e9de !important;
+  color: #292722 !important;
+}
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+html[data-theme="light"] .cg-button {
+  color: #403b35 !important;
+  border-color: #bfb5a8 !important;
+}
+
+html[data-theme="light"] .cg-button:hover {
+  background: #e4dfd6 !important;
+  color: #292722 !important;
+}
+
+html[data-theme="light"] .cg-button-primary {
+  background: #a9682f !important;
+  border-color: #a9682f !important;
+  color: #fffaf2 !important;
+}
+
+/* =========================================================
+   KPI CARDS
+   ========================================================= */
+
+html[data-theme="light"] .cg-kpi {
+  background: #e4dfd6 !important;
+}
+
+html[data-theme="light"] .cg-kpi-label {
+  color: #756e65 !important;
+}
+
+html[data-theme="light"] .cg-kpi-value {
+  color: #292722 !important;
+}
+
+html[data-theme="light"] .cg-kpi-note {
+  color: #625c54 !important;
+}
+
+/* =========================================================
+   FORM ELEMENTS
+   ========================================================= */
+
+html[data-theme="light"] input,
+html[data-theme="light"] textarea,
+html[data-theme="light"] select {
+  background: #fbf8f2 !important;
+  color: #292722 !important;
+  border-color: #c9c0b4 !important;
+}
+
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder {
+  color: #827a70 !important;
+}
+
+/* =========================================================
+   FINAL CONTRAST OVERRIDE
+   ========================================================= */
+
+html[data-theme="light"] .text-slate-100 {
+  color: #292722 !important;
+}
+
+html[data-theme="light"] .text-slate-200 {
+  color: #403b35 !important;
+}
+
+html[data-theme="light"] .text-slate-300 {
+  color: #514c45 !important;
+}
+
+html[data-theme="light"] .text-slate-400 {
+  color: #625c54 !important;
+}
+
+html[data-theme="light"] .text-slate-500 {
+  color: #756e65 !important;
+}
+
+html[data-theme="light"] .text-slate-600 {
+  color: #81796f !important;
+}
+/* =========================================================
+   COALGUARD — ACTUAL LIGHT MODE OVERRIDES
+   ========================================================= */
+
+html[data-theme="light"] {
+  --cg-light-bg: #f3eee5;
+  --cg-light-panel: #e4dfd6;
+  --cg-light-panel-2: #ebe5dc;
+  --cg-light-border: #cfc5b8;
+  --cg-light-text: #292722;
+  --cg-light-muted: #625c54;
+  --cg-light-blue: #315b73;
+  --cg-light-gold: #a9682f;
+}
+
+/* =========================================================
+   PAGE
+   ========================================================= */
+
+html[data-theme="light"] body {
+  background: var(--cg-light-bg) !important;
+  color: var(--cg-light-text) !important;
+}
+
+/* =========================================================
+   INSPECTOR — HERO
+   ========================================================= */
+
+html[data-theme="light"] .cg-hero {
+  background: var(--cg-light-panel) !important;
+  border-color: var(--cg-light-border) !important;
+  box-shadow: 0 16px 35px rgba(60, 50, 40, 0.10) !important;
+  color: var(--cg-light-text) !important;
+}
+
+html[data-theme="light"] .cg-hero-title {
+  color: var(--cg-light-text) !important;
+}
+
+html[data-theme="light"] .cg-hero-copy {
+  color: #625c54 !important;
+}
+
+html[data-theme="light"] .cg-hero-meta,
+html[data-theme="light"] .cg-meta-item {
+  color: #625c54 !important;
+}
+
+html[data-theme="light"] .cg-meta-value {
+  color: var(--cg-light-text) !important;
+}
+
+html[data-theme="light"] .cg-hero-emblem {
+  color: var(--cg-light-gold) !important;
+}
+
+/* =========================================================
+   INSPECTOR — TOOL CARDS
+   ========================================================= */
+
+html[data-theme="light"] .cg-tool-card {
+  background: var(--cg-light-panel) !important;
+  border-color: var(--cg-light-border) !important;
+  color: var(--cg-light-text) !important;
+}
+
+html[data-theme="light"] .cg-tool-card:hover {
+  background: #ddd6cb !important;
+  border-color: #b9ad9f !important;
+}
+
+html[data-theme="light"] .cg-tool-title {
+  color: var(--cg-light-text) !important;
+}
+
+html[data-theme="light"] .cg-tool-desc {
+  color: #625c54 !important;
+}
+
+html[data-theme="light"] .cg-tool-index {
+  color: #756e65 !important;
+}
+
+html[data-theme="light"] .cg-tool-icon {
+  background: #eee8df !important;
+  border-color: #cfc5b8 !important;
+  color: var(--cg-light-gold) !important;
+}
+
+/* =========================================================
+   INSPECTOR — SECTION HEADINGS
+   ========================================================= */
+
+html[data-theme="light"] .cg-section-title {
+  color: var(--cg-light-text) !important;
+}
+
+html[data-theme="light"] .cg-section-label {
+  color: #756e65 !important;
+}
+
+html[data-theme="light"] .cg-section-note {
+  color: #756e65 !important;
+}
+
+/* =========================================================
+   MANAGER — REMOVE PURPLE ACTIVE TAB
+   ========================================================= */
+
+html[data-theme="light"] [class~="bg-violet-500/15"] {
+  background: #e4dfd6 !important;
+}
+
+html[data-theme="light"] [class~="text-violet-300"],
+html[data-theme="light"] [class~="text-violet-400"],
+html[data-theme="light"] [class~="text-violet-500"] {
+  color: var(--cg-light-gold) !important;
+}
+
+/* Manager sidebar active text */
+
+html[data-theme="light"] [class~="bg-violet-500/15"] [class~="text-violet-300"] {
+  color: var(--cg-light-gold) !important;
+}
+
+/* =========================================================
+   MANAGER — WHITE TEXT BECOMES DARK
+   ========================================================= */
+
+html[data-theme="light"] [class~="text-white"] {
+  color: var(--cg-light-text) !important;
+}
+
+/* =========================================================
+   MANAGER — SLATE TEXT
+   ========================================================= */
+
+html[data-theme="light"] [class~="text-slate-100"] {
+  color: #292722 !important;
+}
+
+html[data-theme="light"] [class~="text-slate-200"] {
+  color: #403b35 !important;
+}
+
+html[data-theme="light"] [class~="text-slate-300"] {
+  color: #514c45 !important;
+}
+
+html[data-theme="light"] [class~="text-slate-400"] {
+  color: #625c54 !important;
+}
+
+html[data-theme="light"] [class~="text-slate-500"] {
+  color: #756e65 !important;
+}
+
+/* =========================================================
+   MANAGER — DARK TAILWIND CARDS → GREY
+   ========================================================= */
+
+html[data-theme="light"] [class~="bg-slate-950"] {
+  background: #e4dfd6 !important;
+}
+
+html[data-theme="light"] [class~="bg-slate-900"] {
+  background: #e4dfd6 !important;
+}
+
+html[data-theme="light"] [class~="bg-slate-800"] {
+  background: #ebe5dc !important;
+}
+
+/* =========================================================
+   MANAGER — TEXT INSIDE THOSE CARDS
+   ========================================================= */
+
+html[data-theme="light"] [class~="bg-slate-950"] [class~="text-white"],
+html[data-theme="light"] [class~="bg-slate-900"] [class~="text-white"],
+html[data-theme="light"] [class~="bg-slate-800"] [class~="text-white"] {
+  color: #292722 !important;
+}
+
+/* =========================================================
+   MANAGER — PURPLE RECOMMENDATION BOX
+   ========================================================= */
+
+html[data-theme="light"] [class~="bg-violet-500/15"] {
+  background: #dce5e9 !important;
+  border-color: #a9b8c0 !important;
+}
+
+html[data-theme="light"] [class~="bg-violet-500/15"] * {
+  color: #315b73 !important;
+}
+
+/* =========================================================
+   MANAGER — BLUE TEXT
+   ========================================================= */
+
+html[data-theme="light"] [class~="text-blue-300"],
+html[data-theme="light"] [class~="text-blue-400"],
+html[data-theme="light"] [class~="text-cyan-300"],
+html[data-theme="light"] [class~="text-cyan-400"] {
+  color: #315b73 !important;
+}
+
+/* =========================================================
+   MANAGER — KPI CARDS
+   ========================================================= */
+
+html[data-theme="light"] .cg-kpi {
+  background: #e4dfd6 !important;
+  color: #292722 !important;
+}
+
+html[data-theme="light"] .cg-kpi-label {
+  color: #625c54 !important;
+}
+
+html[data-theme="light"] .cg-kpi-value {
+  color: #292722 !important;
+}
+
+html[data-theme="light"] .cg-kpi-note {
+  color: #625c54 !important;
+}
+
+/* =========================================================
+   MANAGER — PANELS
+   ========================================================= */
+
+html[data-theme="light"] .cg-panel {
+  color: #292722;
+}
+
+html[data-theme="light"] .cg-panel-title {
+  color: #292722 !important;
+}
+
+html[data-theme="light"] .cg-panel-subtitle {
+  color: #625c54 !important;
+}
+
+/* =========================================================
+   MANAGER — TABLES
+   ========================================================= */
+
+html[data-theme="light"] table {
+  color: #292722 !important;
+}
+
+html[data-theme="light"] th {
+  color: #514c45 !important;
+}
+
+html[data-theme="light"] td {
+  color: #514c45 !important;
+}
+
+/* =========================================================
+   KEEP STATUS COLOURS READABLE
+   ========================================================= */
+
+html[data-theme="light"] [class~="text-red-400"],
+html[data-theme="light"] [class~="text-red-300"] {
+  color: #93483f !important;
+}
+
+html[data-theme="light"] [class~="text-green-400"],
+html[data-theme="light"] [class~="text-green-300"] {
+  color: #3f6945 !important;
+}
+
+html[data-theme="light"] [class~="text-yellow-400"],
+html[data-theme="light"] [class~="text-yellow-300"],
+html[data-theme="light"] [class~="text-amber-400"],
+html[data-theme="light"] [class~="text-amber-300"] {
+  color: #8a641c !important;
+}
+
+/* =========================================================
+   FINAL — DON'T CHANGE DARK MODE
+   ========================================================= */

@@ -2,10 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import AuditLedger from "./AuditLedger";
 import ComplianceReports from "./ComplianceReports";
 import MineMap from "./MineMap";
-import { API_BASE_URL } from "../api"; 
-/* =========================================================
-   TYPES
-========================================================= */
+import ResolvedRecords from "./ResolvedRecords";
 
 type Inspection = {
   id: number;
@@ -54,10 +51,6 @@ type Mine = {
   longitude?: number;
   status?: string;
   compliance?: number;
-  company?: string;
-  subsidiary?: string;
-  coalfield?: string;
-  mine_type?: string;
 };
 
 type MineGovernance = {
@@ -72,14 +65,8 @@ type MineGovernance = {
   governance: string;
 };
 
-/* =========================================================
-   HELPERS
-========================================================= */
-
 function normalize(value: unknown): string {
-  return String(value || "")
-    .toLowerCase()
-    .trim();
+  return String(value || "").toLowerCase().trim();
 }
 
 function severityValue(value: unknown): number {
@@ -105,41 +92,23 @@ function riskLabel(
   if (score >= 70) return "HIGH";
   if (score >= 40) return "MEDIUM";
 
-  if (normalize(riskLevel) === "red") {
-    return "HIGH";
-  }
+  if (normalize(riskLevel) === "red") return "HIGH";
 
   return "GREEN";
 }
 
 function riskClass(level: string): string {
-  if (level === "CRITICAL") {
-    return "cg-status-critical";
-  }
-
-  if (level === "HIGH") {
-    return "cg-status-high";
-  }
-
-  if (level === "MEDIUM") {
-    return "cg-status-moderate";
-  }
+  if (level === "CRITICAL") return "cg-status-critical";
+  if (level === "HIGH") return "cg-status-high";
+  if (level === "MEDIUM") return "cg-status-moderate";
 
   return "cg-status-low";
 }
 
 function governanceClass(status: string): string {
-  if (status === "ESCALATED") {
-    return "cg-status-critical";
-  }
-
-  if (status === "ATTENTION") {
-    return "cg-status-high";
-  }
-
-  if (status === "WATCH") {
-    return "cg-status-moderate";
-  }
+  if (status === "ESCALATED") return "cg-status-critical";
+  if (status === "ATTENTION") return "cg-status-high";
+  if (status === "WATCH") return "cg-status-moderate";
 
   return "cg-status-low";
 }
@@ -164,10 +133,6 @@ function getViolationMineName(
   return normalize(violation.location_name);
 }
 
-/* =========================================================
-   MINE COMPLIANCE
-========================================================= */
-
 function calculateMineCompliance(
   openViolations: Violation[]
 ): number {
@@ -181,17 +146,9 @@ function calculateMineCompliance(
         violation.severity
       );
 
-      if (severity === 4) {
-        return total + 30;
-      }
-
-      if (severity === 3) {
-        return total + 20;
-      }
-
-      if (severity === 2) {
-        return total + 10;
-      }
+      if (severity === 4) return total + 30;
+      if (severity === 3) return total + 20;
+      if (severity === 2) return total + 10;
 
       return total + 5;
     },
@@ -204,10 +161,6 @@ function calculateMineCompliance(
   );
 }
 
-/* =========================================================
-   MINE RISK
-========================================================= */
-
 function calculateMineRisk(
   mineInspections: Inspection[],
   mineOpenViolations: Violation[]
@@ -215,32 +168,26 @@ function calculateMineRisk(
   level: string;
   score: number;
 } {
-  const critical =
-    mineOpenViolations.filter(
-      violation =>
-        severityValue(violation.severity) === 4
-    ).length;
+  const critical = mineOpenViolations.filter(
+    violation =>
+      severityValue(violation.severity) === 4
+  ).length;
 
-  const high =
-    mineOpenViolations.filter(
-      violation =>
-        severityValue(violation.severity) === 3
-    ).length;
+  const high = mineOpenViolations.filter(
+    violation =>
+      severityValue(violation.severity) === 3
+  ).length;
 
-  const medium =
-    mineOpenViolations.filter(
-      violation =>
-        severityValue(violation.severity) === 2
-    ).length;
+  const medium = mineOpenViolations.filter(
+    violation =>
+      severityValue(violation.severity) === 2
+  ).length;
 
-  const inspectionScores =
-    mineInspections
-      .map(inspection =>
-        Number(inspection.risk_score || 0)
-      )
-      .filter(
-        score => !Number.isNaN(score)
-      );
+  const inspectionScores = mineInspections
+    .map(inspection =>
+      Number(inspection.risk_score || 0)
+    )
+    .filter(score => !Number.isNaN(score));
 
   const highestInspectionScore =
     inspectionScores.length > 0
@@ -250,10 +197,7 @@ function calculateMineRisk(
   if (critical > 0) {
     return {
       level: "CRITICAL",
-      score: Math.max(
-        85,
-        highestInspectionScore
-      ),
+      score: Math.max(85, highestInspectionScore),
     };
   }
 
@@ -263,10 +207,7 @@ function calculateMineRisk(
   ) {
     return {
       level: "HIGH",
-      score: Math.max(
-        70,
-        highestInspectionScore
-      ),
+      score: Math.max(70, highestInspectionScore),
     };
   }
 
@@ -276,10 +217,7 @@ function calculateMineRisk(
   ) {
     return {
       level: "MEDIUM",
-      score: Math.max(
-        40,
-        highestInspectionScore
-      ),
+      score: Math.max(40, highestInspectionScore),
     };
   }
 
@@ -288,10 +226,6 @@ function calculateMineRisk(
     score: highestInspectionScore,
   };
 }
-
-/* =========================================================
-   GOVERNANCE STATUS
-========================================================= */
 
 function calculateGovernanceStatus(
   compliance: number,
@@ -322,10 +256,6 @@ function calculateGovernanceStatus(
   return "COMPLIANT";
 }
 
-/* =========================================================
-   AUTHORITY DASHBOARD
-========================================================= */
-
 function AuthorityDashboard() {
   const [inspections, setInspections] =
     useState<Inspection[]>([]);
@@ -344,10 +274,21 @@ function AuthorityDashboard() {
 
   const [lastUpdated, setLastUpdated] =
     useState("");
+  type AuthorityTab =
+    | "dashboard"
+    | "mines"
+    | "compliance"
+    | "risk"
+    | "escalations"
+    | "inspections"
+    | "map"
+    | "audit"
+    | "reports"
+    | "resolved";
 
-  /* =======================================================
-     LOAD LIVE DATA
-  ======================================================= */
+  const [activeTab, setActiveTab] =
+    useState<AuthorityTab>("dashboard");
+
 
   const loadData = async () => {
     try {
@@ -357,10 +298,10 @@ function AuthorityDashboard() {
         fraudResponse,
         mineResponse,
       ] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/inspections`),
-        fetch(`${API_BASE_URL}/api/violations`),
-        fetch(`${API_BASE_URL}/api/inspections/fraud-alerts`),
-        fetch(`${API_BASE_URL}/api/mines`),
+        fetch("/api/inspections"),
+        fetch("/api/violations"),
+        fetch("/api/inspections/fraud-alerts"),
+        fetch("/api/mines"),
       ]);
 
       const inspectionData =
@@ -401,13 +342,6 @@ function AuthorityDashboard() {
         throw new Error(
           fraudData.message ||
             "Failed to load fraud alerts."
-        );
-      }
-
-      if (!mineResponse.ok) {
-        throw new Error(
-          mineData.message ||
-            "Failed to load mines."
         );
       }
 
@@ -460,10 +394,6 @@ function AuthorityDashboard() {
     }
   };
 
-  /* =======================================================
-     AUTO REFRESH
-  ======================================================= */
-
   useEffect(() => {
     void loadData();
 
@@ -476,10 +406,6 @@ function AuthorityDashboard() {
       window.clearInterval(timer);
   }, []);
 
-  /* =======================================================
-     GLOBAL VIOLATIONS
-  ======================================================= */
-
   const openViolations = useMemo(
     () =>
       violations.filter(
@@ -489,7 +415,14 @@ function AuthorityDashboard() {
     [violations]
   );
 
-  
+  const resolvedViolations = useMemo(
+    () =>
+      violations.filter(
+        violation =>
+          isResolved(violation.status)
+      ),
+    [violations]
+  );
 
   const criticalViolations = useMemo(
     () =>
@@ -524,10 +457,6 @@ function AuthorityDashboard() {
     [openViolations]
   );
 
-  /* =======================================================
-     LATEST RISK
-  ======================================================= */
-
   const latestRiskScore = useMemo(() => {
     const scores = inspections
       .map(inspection =>
@@ -546,14 +475,8 @@ function AuthorityDashboard() {
     return Math.max(...scores);
   }, [inspections]);
 
-  /* =======================================================
-     OVERALL RISK
-  ======================================================= */
-
   const overallRisk = useMemo(() => {
-    if (
-      criticalViolations.length > 0
-    ) {
+    if (criticalViolations.length > 0) {
       return "CRITICAL";
     }
 
@@ -579,12 +502,8 @@ function AuthorityDashboard() {
     latestRiskScore,
   ]);
 
-  /* =======================================================
-     OVERALL COMPLIANCE
-  ======================================================= */
-
   const compliancePercentage = useMemo(() => {
-    if (openViolations.length === 0) {
+    if (violations.length === 0) {
       return 100;
     }
 
@@ -619,11 +538,10 @@ function AuthorityDashboard() {
         100 - totalPenalty
       )
     );
-  }, [openViolations]);
-
-  /* =======================================================
-     ESCALATED CASES
-  ======================================================= */
+  }, [
+    violations,
+    openViolations,
+  ]);
 
   const escalatedCases = useMemo(
     () =>
@@ -635,10 +553,6 @@ function AuthorityDashboard() {
       ),
     [openViolations]
   );
-
-  /* =======================================================
-     RECENT INSPECTIONS
-  ======================================================= */
 
   const recentInspections = useMemo(
     () =>
@@ -656,17 +570,17 @@ function AuthorityDashboard() {
     [inspections]
   );
 
-  /* =======================================================
-     MINE-WISE GOVERNANCE
-  ======================================================= */
-
+  /*
+   * MINE-WISE GOVERNANCE
+   *
+   * Each registered mine is matched against
+   * inspections and violations using location_name.
+   */
   const mineGovernance =
     useMemo<MineGovernance[]>(() => {
       return mines.map(mine => {
         const mineName =
-          normalize(
-            getMineName(mine)
-          );
+          normalize(getMineName(mine));
 
         const mineInspections =
           inspections.filter(
@@ -702,7 +616,7 @@ function AuthorityDashboard() {
 
         const compliance =
           typeof mine.compliance ===
-          "number"
+            "number"
             ? Math.max(
                 0,
                 Math.min(
@@ -751,43 +665,6 @@ function AuthorityDashboard() {
       violations,
     ]);
 
-  /* =======================================================
-     GOVERNANCE COUNTS
-  ======================================================= */
-
-  const escalatedMines =
-    useMemo(
-      () =>
-        mineGovernance.filter(
-          mine =>
-            mine.governance ===
-            "ESCALATED"
-        ).length,
-      [mineGovernance]
-    );
-
-  const attentionMines =
-    useMemo(
-      () =>
-        mineGovernance.filter(
-          mine =>
-            mine.governance ===
-            "ATTENTION"
-        ).length,
-      [mineGovernance]
-    );
-
-  const compliantMines =
-    useMemo(
-      () =>
-        mineGovernance.filter(
-          mine =>
-            mine.governance ===
-            "COMPLIANT"
-        ).length,
-      [mineGovernance]
-    );
-
   const currentDate =
     new Date().toLocaleDateString(
       "en-IN",
@@ -798,16 +675,10 @@ function AuthorityDashboard() {
       }
     );
 
-  /* =======================================================
-     RENDER
-  ======================================================= */
-
   return (
     <div className="cg-layout">
 
-      {/* =================================================
-          SIDEBAR
-      ================================================= */}
+      {/* SIDEBAR */}
 
       <aside className="cg-sidebar">
 
@@ -815,99 +686,66 @@ function AuthorityDashboard() {
           Authority
         </div>
 
-        <button
-          type="button"
-          className="cg-sidebar-item active"
-        >
-          <span>01</span>
-          Authority Overview
+        <button type="button" className={`cg-sidebar-item ${activeTab === "dashboard" ? "active" : ""}`} onClick={() => setActiveTab("dashboard")}>
+          <span>01</span> Authority Dashboard
         </button>
 
-        <button
-          type="button"
-          className="cg-sidebar-item"
-        >
-          <span>02</span>
-          Mine Oversight
+        <button type="button" className={`cg-sidebar-item ${activeTab === "mines" ? "active" : ""}`} onClick={() => setActiveTab("mines")}>
+          <span>02</span> Mine Oversight
         </button>
 
-        <button
-          type="button"
-          className="cg-sidebar-item"
-        >
-          <span>03</span>
-          Compliance Status
+        <button type="button" className={`cg-sidebar-item ${activeTab === "compliance" ? "active" : ""}`} onClick={() => setActiveTab("compliance")}>
+          <span>03</span> Compliance Status
         </button>
 
-        <button
-          type="button"
-          className="cg-sidebar-item"
-        >
-          <span>04</span>
-          Risk & Violations
+        <button type="button" className={`cg-sidebar-item ${activeTab === "risk" ? "active" : ""}`} onClick={() => setActiveTab("risk")}>
+          <span>04</span> Risk & Violations
         </button>
 
-        <button
-          type="button"
-          className="cg-sidebar-item"
-        >
-          <span>05</span>
-          Escalations
+        <button type="button" className={`cg-sidebar-item ${activeTab === "escalations" ? "active" : ""}`} onClick={() => setActiveTab("escalations")}>
+          <span>05</span> Escalations
         </button>
 
         <div className="cg-sidebar-section">
           Accountability
         </div>
 
-        <button
-          type="button"
-          className="cg-sidebar-item"
-        >
-          <span>06</span>
-          Inspection Oversight
+        <button type="button" className={`cg-sidebar-item ${activeTab === "inspections" ? "active" : ""}`} onClick={() => setActiveTab("inspections")}>
+          <span>06</span> Inspection Oversight
         </button>
 
-        <button
-          type="button"
-          className="cg-sidebar-item"
-        >
-          <span>07</span>
-          Audit & Accountability
+        <button type="button" className={`cg-sidebar-item ${activeTab === "audit" ? "active" : ""}`} onClick={() => setActiveTab("audit")}>
+          <span>07</span> Audit & Accountability
         </button>
 
-        <button
-          type="button"
-          className="cg-sidebar-item"
-        >
-          <span>08</span>
-          Regulatory Reports
+        <button type="button" className={`cg-sidebar-item ${activeTab === "reports" ? "active" : ""}`} onClick={() => setActiveTab("reports")}>
+          <span>08</span> Regulatory Reports
+        </button>
+
+        <button type="button" className={`cg-sidebar-item ${activeTab === "resolved" ? "active" : ""}`} onClick={() => setActiveTab("resolved")}>
+          <span>09</span> Resolved Records
         </button>
 
         <div className="cg-sidebar-section">
           Intelligence
         </div>
 
-        <button
-          type="button"
-          className="cg-sidebar-item"
-        >
-          <span>09</span>
-          Mine Risk Map
+        <button type="button" className={`cg-sidebar-item ${activeTab === "map" ? "active" : ""}`} onClick={() => setActiveTab("map")}>
+          <span>10</span> Mine Risk Map
         </button>
 
       </aside>
 
-      {/* =================================================
-          MAIN
-      ================================================= */}
+      {/* MAIN */}
 
       <main className="cg-main">
 
         <div className="cg-main-inner">
 
-          {/* =================================================
-              HEADER
-          ================================================= */}
+
+          {activeTab === "dashboard" && (
+            <>
+          {/* HEADER */}
 
           <section className="cg-page-header">
 
@@ -940,9 +778,7 @@ function AuthorityDashboard() {
 
           </section>
 
-          {/* =================================================
-              BACKEND STATUS
-          ================================================= */}
+          {/* BACKEND STATUS */}
 
           <section
             className="cg-panel"
@@ -995,20 +831,20 @@ function AuthorityDashboard() {
                     : "cg-status-low"
                 }`}
               >
+
                 <span className="cg-status-dot" />
 
                 {backendError
                   ? "API ERROR"
                   : "LIVE GOVERNANCE LINK"}
+
               </span>
 
             </div>
 
           </section>
 
-          {/* =================================================
-              ERROR
-          ================================================= */}
+          {/* ERROR */}
 
           {backendError && (
             <section
@@ -1046,14 +882,11 @@ function AuthorityDashboard() {
             </section>
           )}
 
-          {/* =================================================
-              KPI STRIP
-          ================================================= */}
+          {/* KPI STRIP */}
 
           <section className="cg-kpi-grid">
 
             <div className="cg-kpi">
-
               <div className="cg-kpi-label">
                 Registered Mines
               </div>
@@ -1065,11 +898,9 @@ function AuthorityDashboard() {
               <div className="cg-kpi-note">
                 Mines in governance database
               </div>
-
             </div>
 
             <div className="cg-kpi">
-
               <div className="cg-kpi-label">
                 Field Inspections
               </div>
@@ -1081,11 +912,9 @@ function AuthorityDashboard() {
               <div className="cg-kpi-note">
                 Backend inspection records
               </div>
-
             </div>
 
             <div className="cg-kpi">
-
               <div className="cg-kpi-label">
                 Overall Compliance
               </div>
@@ -1097,11 +926,9 @@ function AuthorityDashboard() {
               <div className="cg-kpi-note">
                 Current governance position
               </div>
-
             </div>
 
             <div className="cg-kpi">
-
               <div className="cg-kpi-label">
                 Open Violations
               </div>
@@ -1113,33 +940,26 @@ function AuthorityDashboard() {
               <div className="cg-kpi-note">
                 Awaiting corrective action
               </div>
-
             </div>
 
             <div className="cg-kpi">
-
               <div className="cg-kpi-label">
                 Critical / High
               </div>
 
               <div className="cg-kpi-value">
-                {
-                  criticalViolations.length +
-                  highViolations.length
-                }
+                {criticalViolations.length +
+                  highViolations.length}
               </div>
 
               <div className="cg-kpi-note">
                 Regulatory attention required
               </div>
-
             </div>
 
           </section>
 
-          {/* =================================================
-              GOVERNANCE POSITION
-          ================================================= */}
+          {/* GOVERNANCE POSITION */}
 
           <div
             className="cg-dashboard-grid"
@@ -1201,7 +1021,6 @@ function AuthorityDashboard() {
                         "var(--cg-surface-2)",
                     }}
                   >
-
                     <div className="cg-kpi-label">
                       COMPLIANCE
                     </div>
@@ -1215,7 +1034,6 @@ function AuthorityDashboard() {
                     >
                       {compliancePercentage}%
                     </div>
-
                   </div>
 
                   <div
@@ -1225,7 +1043,6 @@ function AuthorityDashboard() {
                         "var(--cg-surface-2)",
                     }}
                   >
-
                     <div className="cg-kpi-label">
                       SYSTEM RISK
                     </div>
@@ -1239,7 +1056,6 @@ function AuthorityDashboard() {
                     >
                       {overallRisk}
                     </div>
-
                   </div>
 
                 </div>
@@ -1263,9 +1079,9 @@ function AuthorityDashboard() {
                     }}
                   >
                     <strong>
-                      Registered mines:
+                      Resolved violations:
                     </strong>{" "}
-                    {mines.length}
+                    {resolvedViolations.length}
                   </div>
 
                   <div
@@ -1279,9 +1095,9 @@ function AuthorityDashboard() {
                     }}
                   >
                     <strong>
-                      Compliant mines:
+                      Escalated cases:
                     </strong>{" "}
-                    {compliantMines}
+                    {escalatedCases.length}
                   </div>
 
                   <div
@@ -1295,25 +1111,9 @@ function AuthorityDashboard() {
                     }}
                   >
                     <strong>
-                      Mines requiring attention:
+                      Fraud / GPS alerts:
                     </strong>{" "}
-                    {attentionMines}
-                  </div>
-
-                  <div
-                    style={{
-                      padding: "11px",
-                      border:
-                        "1px solid var(--cg-border)",
-                      background:
-                        "var(--cg-surface-2)",
-                      fontSize: "10px",
-                    }}
-                  >
-                    <strong>
-                      Escalated mines:
-                    </strong>{" "}
-                    {escalatedMines}
+                    {fraudAlerts.length}
                   </div>
 
                 </div>
@@ -1322,9 +1122,7 @@ function AuthorityDashboard() {
 
             </section>
 
-            {/* =================================================
-                RISK POSITION
-            ================================================= */}
+            {/* RISK POSITION */}
 
             <section className="cg-panel">
 
@@ -1375,7 +1173,6 @@ function AuthorityDashboard() {
                         "var(--cg-surface-2)",
                     }}
                   >
-
                     <div className="cg-kpi-label">
                       Critical
                     </div>
@@ -1389,7 +1186,6 @@ function AuthorityDashboard() {
                     >
                       {criticalViolations.length}
                     </div>
-
                   </div>
 
                   <div
@@ -1399,7 +1195,6 @@ function AuthorityDashboard() {
                         "var(--cg-surface-2)",
                     }}
                   >
-
                     <div className="cg-kpi-label">
                       High
                     </div>
@@ -1413,7 +1208,6 @@ function AuthorityDashboard() {
                     >
                       {highViolations.length}
                     </div>
-
                   </div>
 
                   <div
@@ -1423,7 +1217,6 @@ function AuthorityDashboard() {
                         "var(--cg-surface-2)",
                     }}
                   >
-
                     <div className="cg-kpi-label">
                       Medium
                     </div>
@@ -1437,7 +1230,6 @@ function AuthorityDashboard() {
                     >
                       {mediumViolations.length}
                     </div>
-
                   </div>
 
                   <div
@@ -1447,9 +1239,8 @@ function AuthorityDashboard() {
                         "var(--cg-surface-2)",
                     }}
                   >
-
                     <div className="cg-kpi-label">
-                      GPS Alerts
+                      Alerts
                     </div>
 
                     <div
@@ -1461,7 +1252,6 @@ function AuthorityDashboard() {
                     >
                       {fraudAlerts.length}
                     </div>
-
                   </div>
 
                 </div>
@@ -1477,12 +1267,10 @@ function AuthorityDashboard() {
                     fontSize: "10px",
                   }}
                 >
-
                   <strong>
                     Highest inspection risk score:
                   </strong>{" "}
                   {latestRiskScore}
-
                 </div>
 
               </div>
@@ -1491,9 +1279,15 @@ function AuthorityDashboard() {
 
           </div>
 
-          {/* =================================================
-              MINE-WISE GOVERNANCE
-          ================================================= */}
+          {/* ===================================================== */}
+
+            </>
+          )}
+
+          {activeTab === "mines" && (
+            <>
+          {/* MINE-WISE GOVERNANCE */}
+          {/* ===================================================== */}
 
           <section
             className="cg-panel"
@@ -1511,8 +1305,9 @@ function AuthorityDashboard() {
                 </h2>
 
                 <p className="cg-panel-subtitle">
-                  Live regulatory position for every
-                  registered mine
+                  Regulatory status of each registered
+                  mine based on live inspection and
+                  violation data
                 </p>
 
               </div>
@@ -1536,7 +1331,6 @@ function AuthorityDashboard() {
                       "var(--cg-surface-2)",
                   }}
                 >
-
                   <strong>
                     No registered mines found.
                   </strong>
@@ -1550,10 +1344,10 @@ function AuthorityDashboard() {
                       fontSize: "11px",
                     }}
                   >
-                    The governance API is not
-                    currently returning mine records.
+                    Add mine records through the
+                    governance database to display
+                    mine-wise regulatory status.
                   </p>
-
                 </div>
 
               ) : (
@@ -1569,7 +1363,7 @@ function AuthorityDashboard() {
                   <table
                     style={{
                       width: "100%",
-                      minWidth: "950px",
+                      minWidth: "900px",
                       borderCollapse:
                         "collapse",
                       fontSize: "10px",
@@ -1677,8 +1471,7 @@ function AuthorityDashboard() {
 
                             <td
                               style={{
-                                padding:
-                                  "13px 12px",
+                                padding: "13px 12px",
                               }}
                             >
 
@@ -1702,8 +1495,7 @@ function AuthorityDashboard() {
                                   fontSize: "9px",
                                 }}
                               >
-                                ID #
-                                {record.mine.id}
+                                ID #{record.mine.id}
 
                                 {record.mine
                                   .location_name &&
@@ -1716,8 +1508,7 @@ function AuthorityDashboard() {
 
                             <td
                               style={{
-                                padding:
-                                  "13px 12px",
+                                padding: "13px 12px",
                               }}
                             >
                               <strong>
@@ -1733,8 +1524,7 @@ function AuthorityDashboard() {
 
                             <td
                               style={{
-                                padding:
-                                  "13px 12px",
+                                padding: "13px 12px",
                               }}
                             >
 
@@ -1742,7 +1532,8 @@ function AuthorityDashboard() {
                                 className={
                                   record
                                     .openViolations
-                                    .length > 0
+                                    .length >
+                                  0
                                     ? "cg-status cg-status-high"
                                     : "cg-status cg-status-low"
                                 }
@@ -1760,14 +1551,14 @@ function AuthorityDashboard() {
 
                             <td
                               style={{
-                                padding:
-                                  "13px 12px",
+                                padding: "13px 12px",
                               }}
                             >
 
                               <span
                                 className={
-                                  record.criticalHigh > 0
+                                  record.criticalHigh >
+                                  0
                                     ? "cg-status cg-status-critical"
                                     : "cg-status cg-status-low"
                                 }
@@ -1783,8 +1574,7 @@ function AuthorityDashboard() {
 
                             <td
                               style={{
-                                padding:
-                                  "13px 12px",
+                                padding: "13px 12px",
                               }}
                             >
 
@@ -1814,7 +1604,6 @@ function AuthorityDashboard() {
                                       "hidden",
                                   }}
                                 >
-
                                   <div
                                     style={{
                                       width: `${record.compliance}%`,
@@ -1823,7 +1612,6 @@ function AuthorityDashboard() {
                                         "currentColor",
                                     }}
                                   />
-
                                 </div>
 
                               </div>
@@ -1834,8 +1622,7 @@ function AuthorityDashboard() {
 
                             <td
                               style={{
-                                padding:
-                                  "13px 12px",
+                                padding: "13px 12px",
                               }}
                             >
 
@@ -1844,11 +1631,8 @@ function AuthorityDashboard() {
                                   record.risk
                                 )}`}
                               >
-
                                 <span className="cg-status-dot" />
-
                                 {record.risk}
-
                               </span>
 
                               <div
@@ -1871,8 +1655,7 @@ function AuthorityDashboard() {
 
                             <td
                               style={{
-                                padding:
-                                  "13px 12px",
+                                padding: "13px 12px",
                               }}
                             >
 
@@ -1881,13 +1664,10 @@ function AuthorityDashboard() {
                                   record.governance
                                 )}`}
                               >
-
                                 <span className="cg-status-dot" />
-
                                 {
                                   record.governance
                                 }
-
                               </span>
 
                             </td>
@@ -1909,9 +1689,104 @@ function AuthorityDashboard() {
 
           </section>
 
-          {/* =================================================
-              REGULATORY ESCALATIONS
-          ================================================= */}
+          {/* ===================================================== */}
+
+            </>
+          )}
+
+          {activeTab === "compliance" && (
+            <>
+
+          <section className="cg-panel">
+            <div className="cg-panel-header">
+              <div>
+                <h2 className="cg-panel-title">Compliance Status</h2>
+                <p className="cg-panel-subtitle">Current system-wide compliance position</p>
+              </div>
+              <span className={`cg-status ${
+                compliancePercentage >= 90
+                  ? "cg-status-low"
+                  : compliancePercentage >= 75
+                  ? "cg-status-moderate"
+                  : "cg-status-critical"
+              }`}>
+                <span className="cg-status-dot" />
+                {compliancePercentage}%
+              </span>
+            </div>
+            <div className="cg-panel-body">
+              <div className="cg-kpi-grid">
+                <div className="cg-kpi">
+                  <div className="cg-kpi-label">OVERALL COMPLIANCE</div>
+                  <div className="cg-kpi-value">{compliancePercentage}%</div>
+                  <div className="cg-kpi-note">Current governance position</div>
+                </div>
+                <div className="cg-kpi">
+                  <div className="cg-kpi-label">OPEN VIOLATIONS</div>
+                  <div className="cg-kpi-value">{openViolations.length}</div>
+                  <div className="cg-kpi-note">Awaiting corrective action</div>
+                </div>
+                <div className="cg-kpi">
+                  <div className="cg-kpi-label">RESOLVED</div>
+                  <div className="cg-kpi-value">{resolvedViolations.length}</div>
+                  <div className="cg-kpi-note">Historical resolved cases</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+            </>
+          )}
+
+          {activeTab === "risk" && (
+            <>
+
+          <section className="cg-panel">
+            <div className="cg-panel-header">
+              <div>
+                <h2 className="cg-panel-title">Risk & Violations</h2>
+                <p className="cg-panel-subtitle">Current open safety exposure</p>
+              </div>
+              <span className={`cg-status ${
+                overallRisk === "LOW"
+                  ? "cg-status-low"
+                  : overallRisk === "MEDIUM"
+                  ? "cg-status-moderate"
+                  : "cg-status-critical"
+              }`}>
+                <span className="cg-status-dot" />
+                {overallRisk}
+              </span>
+            </div>
+            <div className="cg-panel-body">
+              <div className="cg-kpi-grid">
+                <div className="cg-kpi">
+                  <div className="cg-kpi-label">CRITICAL</div>
+                  <div className="cg-kpi-value">{criticalViolations.length}</div>
+                </div>
+                <div className="cg-kpi">
+                  <div className="cg-kpi-label">HIGH</div>
+                  <div className="cg-kpi-value">{highViolations.length}</div>
+                </div>
+                <div className="cg-kpi">
+                  <div className="cg-kpi-label">MEDIUM</div>
+                  <div className="cg-kpi-value">{mediumViolations.length}</div>
+                </div>
+                <div className="cg-kpi">
+                  <div className="cg-kpi-label">MAX RISK SCORE</div>
+                  <div className="cg-kpi-value">{latestRiskScore}</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+            </>
+          )}
+
+          {activeTab === "escalations" && (
+            <>
+          {/* ESCALATIONS */}
+          {/* ===================================================== */}
 
           <section
             className="cg-panel"
@@ -1954,7 +1829,6 @@ function AuthorityDashboard() {
                       "var(--cg-surface-2)",
                   }}
                 >
-
                   <p
                     style={{
                       margin: 0,
@@ -1966,7 +1840,6 @@ function AuthorityDashboard() {
                     No critical or high-severity
                     violations are currently open.
                   </p>
-
                 </div>
 
               ) : (
@@ -2051,9 +1924,7 @@ function AuthorityDashboard() {
                           {violation
                             .location_name ||
                             "Unknown"}
-
                           {" • "}
-
                           Reported by:{" "}
                           {violation
                             .reported_by ||
@@ -2072,9 +1943,15 @@ function AuthorityDashboard() {
 
           </section>
 
-          {/* =================================================
-              INSPECTION OVERSIGHT
-          ================================================= */}
+          {/* ===================================================== */}
+
+            </>
+          )}
+
+          {activeTab === "inspections" && (
+            <>
+          {/* INSPECTION OVERSIGHT */}
+          {/* ===================================================== */}
 
           <section
             className="cg-panel"
@@ -2201,7 +2078,6 @@ function AuthorityDashboard() {
                                 Inspector
                               </strong>
                               <br />
-
                               {inspection
                                 .inspector_name ||
                                 "Unknown"}
@@ -2212,7 +2088,6 @@ function AuthorityDashboard() {
                                 Mine
                               </strong>
                               <br />
-
                               {inspection
                                 .location_name ||
                                 "Unknown"}
@@ -2223,7 +2098,6 @@ function AuthorityDashboard() {
                                 Risk Score
                               </strong>
                               <br />
-
                               {score}
                             </div>
 
@@ -2232,7 +2106,6 @@ function AuthorityDashboard() {
                                 GPS Distance
                               </strong>
                               <br />
-
                               {Number(
                                 inspection
                                   .distance_meters ||
@@ -2255,15 +2128,12 @@ function AuthorityDashboard() {
                               lineHeight: 1.5,
                             }}
                           >
-
                             <strong>
                               Observation:
                             </strong>{" "}
-
                             {inspection
                               .observation ||
                               "No observation recorded."}
-
                           </div>
 
                         </div>
@@ -2280,9 +2150,15 @@ function AuthorityDashboard() {
 
           </section>
 
-          {/* =================================================
-              MINE MAP
-          ================================================= */}
+          {/* ===================================================== */}
+
+            </>
+          )}
+
+          {activeTab === "map" && (
+            <>
+          {/* MINE MAP */}
+          {/* ===================================================== */}
 
           <section
             className="cg-panel"
@@ -2296,17 +2172,16 @@ function AuthorityDashboard() {
               <div>
 
                 <h2 className="cg-panel-title">
-                  Mine Risk Map
+                  Mine Oversight
                 </h2>
 
                 <p className="cg-panel-subtitle">
-                  Geographic overview of registered
-                  mining operations
+                  Geographic and operational overview
                 </p>
 
               </div>
 
-              <span className="cg-status cg-status-low">
+              <span className="cg-status">
                 {mines.length} Mines
               </span>
 
@@ -2318,9 +2193,15 @@ function AuthorityDashboard() {
 
           </section>
 
-          {/* =================================================
-              AUDIT
-          ================================================= */}
+          {/* ===================================================== */}
+
+            </>
+          )}
+
+          {activeTab === "audit" && (
+            <>
+          {/* AUDIT */}
+          {/* ===================================================== */}
 
           <section
             className="cg-panel"
@@ -2356,9 +2237,44 @@ function AuthorityDashboard() {
 
           </section>
 
-          {/* =================================================
-              REPORTS
-          ================================================= */}
+          {/* ===================================================== */}
+
+            </>
+          )}
+
+          {activeTab === "resolved" && (
+            <>
+              <section
+                className="cg-panel"
+                style={{
+                  marginTop: "14px",
+                }}
+              >
+                <div className="cg-panel-header">
+                  <div>
+                    <h2 className="cg-panel-title">
+                      Resolved Records
+                    </h2>
+                    <p className="cg-panel-subtitle">
+                      Historical violations that have completed the corrective-action workflow
+                    </p>
+                  </div>
+                  <span className="cg-status">
+                    ARCHIVE
+                  </span>
+                </div>
+
+                <div className="cg-panel-body">
+                  <ResolvedRecords />
+                </div>
+              </section>
+            </>
+          )}
+
+          {activeTab === "reports" && (
+            <>
+          {/* REPORTS */}
+          {/* ===================================================== */}
 
           <section
             className="cg-panel"
@@ -2390,9 +2306,11 @@ function AuthorityDashboard() {
 
           </section>
 
-          {/* =================================================
-              FOOTER
-          ================================================= */}
+          {/* FOOTER */}
+
+
+            </>
+          )}
 
           <footer className="cg-footer">
 
@@ -2400,8 +2318,7 @@ function AuthorityDashboard() {
 
               <strong
                 style={{
-                  color:
-                    "var(--cg-text)",
+                  color: "var(--cg-text)",
                 }}
               >
                 COALGUARD

@@ -158,6 +158,17 @@ function InspectorMobileView() {
 
   const [statusMessage, setStatusMessage] = useState("");
 
+  type InspectorTab =
+    | "dashboard"
+     | "evidence"
+    | "compliance"
+    | "violations"
+    | "records"
+    | "resources";
+
+  const [activeTab, setActiveTab] =
+    useState<InspectorTab>("dashboard");
+
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
 
@@ -234,19 +245,41 @@ function InspectorMobileView() {
     );
   };
 
-  const useDemoGPS = () => {
-    // Registered backend test location.
-    setMineId("1");
-    setMineLink("MINE-SHAFT-03");
+  const useDemoGPS = async () => {
+    const demoLatitude = "22.572600";
+    const demoLongitude = "88.363900";
 
-    setLatitude("22.572600");
-    setLongitude("88.363900");
-
+    setLatitude(demoLatitude);
+    setLongitude(demoLongitude);
     setGpsMode("demo");
+    setStatusMessage("Loading registered demo mine details...");
 
-    setStatusMessage(
-      "Demo mine loaded: Deep Pit Shaft 03. Backend 30-meter verification remains active."
-    );
+    try {
+      const response = await getLocations();
+      const locations = Array.isArray(response?.locations) ? response.locations : [];
+      const matchedLocation = locations.find((location: any) =>
+        Math.abs(Number(location.latitude) - Number(demoLatitude)) < 0.00001 &&
+        Math.abs(Number(location.longitude) - Number(demoLongitude)) < 0.00001
+      ) || locations.find((location: any) =>
+        String(location.name || "").trim().toLowerCase() === "deep pit shaft 03"
+      );
+
+      if (!matchedLocation) {
+        setMineId("");
+        setMineLink("");
+        setStatusMessage("Demo GPS loaded, but the registered demo mine could not be found.");
+        return;
+      }
+
+      setMineId(String(matchedLocation.id));
+      setMineLink(String(matchedLocation.qr_code || matchedLocation.qrCode || ""));
+      setStatusMessage(`Demo mine verified: ${matchedLocation.name}. GPS coordinates and Mine ID loaded.`);
+    } catch (error) {
+      console.error("DEMO MINE LOOKUP FAILED:", error);
+      setMineId("");
+      setMineLink("");
+      setStatusMessage("Demo GPS loaded, but registered mine details could not be retrieved.");
+    }
   };
 
   const handleQRScan = async (data: string) => {
@@ -385,239 +418,200 @@ function InspectorMobileView() {
   };
 
   const saveInspection = async () => {
-    try {
-      // ============================================================
-      // VALIDATION
-      // ============================================================
+    // -----------------------------------------
+    // VALIDATION
+    // -----------------------------------------
 
-      if (!mineId.trim()) {
-        setStatusMessage(
-          "Please select a valid mine. Use DEMO GPS for the test mine."
-        );
-        return;
-      }
-
-      if (!inspectorName.trim()) {
-        setStatusMessage(
-          "Please enter the inspector name."
-        );
-        return;
-      }
-
-      if (!currentInspectionId) {
-        setStatusMessage(
-          "Start an inspection first."
-        );
-        return;
-      }
-
-      const backendLocationId = Number(mineId.trim());
-      const backendLatitude = Number(latitude);
-      const backendLongitude = Number(longitude);
-
-      const inspectorId =
-        Number(
-          localStorage.getItem("coalguard_user_id")
-        ) || 1;
-
-      // Mine ID must be a valid backend location.
-      if (
-        !Number.isInteger(backendLocationId) ||
-        backendLocationId <= 0
-      ) {
-        setStatusMessage(
-          "Invalid Mine ID. Please use DEMO GPS or enter a valid registered mine ID."
-        );
-        return;
-      }
-
-      // GPS must exist.
-      if (
-        !Number.isFinite(backendLatitude) ||
-        !Number.isFinite(backendLongitude)
-      ) {
-        setStatusMessage(
-          "Please capture GPS before submitting the inspection."
-        );
-        return;
-      }
-
-      // ============================================================
-      // COLLECT EVIDENCE
-      // ============================================================
-
-      const currentVoiceNotes =
-        getCurrentVoiceNotes();
-
-      const currentPhotoCount =
-        getCurrentPhotos().length;
-
-      // ============================================================
-      // SEND TO SQLITE BACKEND FIRST
-      // ============================================================
-
+    if (
+      mineId.trim() === "" &&
+      mineLink.trim() === ""
+    ) {
       setStatusMessage(
-        "Sending inspection to CoalGuard backend..."
+        "Please scan a mine QR code or enter a Mine ID."
       );
+      return;
+    }
 
-      const backendResult =
+    if (inspectorName.trim() === "") {
+      setStatusMessage(
+        "Please enter the inspector name."
+      );
+      return;
+    }
+
+    if (!currentInspectionId) {
+      setStatusMessage(
+        "Start an inspection first."
+      );
+      return;
+    }
+
+    // -----------------------------------------
+    // COLLECT CURRENT EVIDENCE
+    // -----------------------------------------
+
+    const currentVoiceNotes =
+      getCurrentVoiceNotes();
+
+    const currentPhotoCount =
+      getCurrentPhotos().length;
+
+    // -----------------------------------------
+    // CREATE LOCAL INSPECTION RECORD
+    // -----------------------------------------
+
+    const newInspection: Inspection = {
+      id: currentInspectionId,
+
+      dateTime:
+        new Date().toLocaleString(),
+
+      mineId:
+        mineId.trim(),
+
+      mineLink:
+        mineLink.trim(),
+
+      inspectorName:
+        inspectorName.trim(),
+
+      inspectionType,
+
+      safetyStatus,
+
+      latitude,
+
+      longitude,
+
+      observations:
+        observations.trim(),
+
+      emergencyExit,
+
+      ventilation,
+
+      ppe,
+
+      electrical,
+
+      fireSafety,
+
+      remarks:
+        remarks.trim(),
+
+      photoCount:
+        currentPhotoCount,
+
+      voiceCount:
+        currentVoiceNotes.length,
+
+      voiceNoteIds:
+        currentVoiceNotes.map(
+          (note) => note.id
+        ),
+    };
+
+    // -----------------------------------------
+    // SAVE TO LOCAL STORAGE
+    // -----------------------------------------
+
+    const updated = [
+      newInspection,
+      ...inspections,
+    ];
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(updated)
+    );
+
+    setInspections(updated);
+
+    // -----------------------------------------
+    // PREPARE BACKEND DATA
+    // -----------------------------------------
+
+    const backendLocationId =
+      Number(mineId.trim());
+
+    const backendLatitude =
+      Number(latitude);
+
+    const backendLongitude =
+      Number(longitude);
+
+    const inspectorId =
+      Number(
+        localStorage.getItem(
+          "coalguard_user_id"
+        )
+      ) || 1;
+
+    // -----------------------------------------
+    // CHECK BACKEND DATA
+    // -----------------------------------------
+
+    if (
+      !Number.isInteger(
+        backendLocationId
+      ) ||
+      backendLocationId <= 0
+    ) {
+      setStatusMessage(
+        "Inspection saved locally. Enter a valid numeric Mine ID to sync with the backend."
+      );
+      return;
+    }
+
+    if (
+      !Number.isFinite(
+        backendLatitude
+      ) ||
+      !Number.isFinite(
+        backendLongitude
+      )
+    ) {
+      setStatusMessage(
+        "Inspection saved locally. Capture GPS before syncing with the backend."
+      );
+      return;
+    }
+
+    // -----------------------------------------
+    // SEND INSPECTION TO BACKEND
+    // -----------------------------------------
+
+    setStatusMessage(
+      "Sending inspection to CoalGuard backend..."
+    );
+
+    try {
+      const result =
         await submitInspection({
-          inspector_id: inspectorId,
-          location_id: backendLocationId,
-          latitude: backendLatitude,
-          longitude: backendLongitude,
-          observation: observations.trim(),
+          inspector_id:
+            inspectorId,
+
+          location_id:
+            backendLocationId,
+
+          latitude:
+            backendLatitude,
+
+          longitude:
+            backendLongitude,
+
+          observation:
+            observations.trim(),
         });
 
       console.log(
-        "COALGUARD BACKEND INSPECTION:",
-        backendResult
+        "BACKEND INSPECTION CREATED:",
+        result
       );
-
-      // ============================================================
-      // CREATE LOCAL DISPLAY RECORD ONLY AFTER BACKEND SUCCESS
-      // ============================================================
-
-      const newInspection: Inspection = {
-        id: currentInspectionId,
-
-        dateTime:
-          new Date().toLocaleString(),
-
-        mineId:
-          mineId.trim(),
-
-        mineLink:
-          mineLink.trim(),
-
-        inspectorName:
-          inspectorName.trim(),
-
-        inspectionType,
-
-        safetyStatus,
-
-        latitude,
-
-        longitude,
-
-        observations:
-          observations.trim(),
-
-        emergencyExit,
-
-        ventilation,
-
-        ppe,
-
-        electrical,
-
-        fireSafety,
-
-        remarks:
-          remarks.trim(),
-
-        photoCount:
-          currentPhotoCount,
-
-        voiceCount:
-          currentVoiceNotes.length,
-
-        voiceNoteIds:
-          currentVoiceNotes.map(
-            (note) => note.id
-          ),
-      };
-
-      const updated = [
-        newInspection,
-        ...inspections,
-      ];
-
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(updated)
-      );
-
-      setInspections(updated);
-
-      // ============================================================
-      // SHOW BACKEND SUCCESS
-      // ============================================================
-
-      const backendInspection =
-        backendResult?.inspection;
-
-      const backendId =
-        backendInspection?.id
-          ? ` #${backendInspection.id}`
-          : "";
-
-      const backendRisk =
-        backendInspection?.riskLevel
-          ? ` Risk: ${backendInspection.riskLevel}.`
-          : "";
 
       setStatusMessage(
-        `Inspection successfully saved to SQLite${backendId}.${backendRisk}`
+        "Inspection saved successfully to CoalGuard backend."
       );
-
-      console.log(
-        "INSPECTION FULLY SAVED:",
-        {
-          localInspection: newInspection,
-          backendInspection: backendResult,
-        }
-      );
-
-      // ============================================================
-      // RESET AFTER SUCCESS
-      // ============================================================
-
-      setTimeout(() => {
-        setShowInspection(false);
-
-        setCurrentInspectionId("");
-        setMineId("");
-        setMineLink("");
-        setInspectorName("");
-
-        setInspectionType(
-          "Routine Inspection"
-        );
-
-        setSafetyStatus(
-          "Pending"
-        );
-
-        setLatitude("");
-        setLongitude("");
-        setGpsMode("live");
-        setObservations("");
-
-        setEmergencyExit(
-          "Not Checked"
-        );
-
-        setVentilation(
-          "Not Checked"
-        );
-
-        setPpe(
-          "Not Checked"
-        );
-
-        setElectrical(
-          "Not Checked"
-        );
-
-        setFireSafety(
-          "Not Checked"
-        );
-
-        setRemarks("");
-        setStatusMessage("");
-      }, 1500);
 
     } catch (error) {
       console.error(
@@ -630,12 +624,67 @@ function InspectorMobileView() {
           ? error.message
           : "Unknown backend error";
 
-      // Do not create a fake local record when the backend fails.
       setStatusMessage(
-        `BACKEND SYNC FAILED: ${errorMessage}`
+        `Inspection saved locally, but backend sync failed: ${errorMessage}`
       );
     }
+
+    // -----------------------------------------
+    // CLOSE INSPECTION WINDOW
+    // -----------------------------------------
+
+    setShowInspection(false);
+
+    // -----------------------------------------
+    // RESET INSPECTION FORM
+    // -----------------------------------------
+
+    setCurrentInspectionId("");
+
+    setMineId("");
+
+    setMineLink("");
+
+    setInspectorName("");
+
+    setInspectionType(
+      "Routine Inspection"
+    );
+
+    setSafetyStatus(
+      "Pending"
+    );
+
+    setLatitude("");
+
+    setLongitude("");
+    setGpsMode("live");
+
+    setObservations("");
+
+    setEmergencyExit(
+      "Not Checked"
+    );
+
+    setVentilation(
+      "Not Checked"
+    );
+
+    setPpe(
+      "Not Checked"
+    );
+
+    setElectrical(
+      "Not Checked"
+    );
+
+    setFireSafety(
+      "Not Checked"
+    );
+
+    setRemarks("");
   };
+
 
   const getAllSavedPhotos = (): PhotoEvidence[] => {
     const saved = localStorage.getItem(PHOTO_STORAGE_KEY);
@@ -807,6 +856,12 @@ function InspectorMobileView() {
 .cg-icon-button{border:1px solid #2a3133;border-radius:3px!important;background:#191e20!important;color:#e5e1d8!important}
 .cg-footer{border-top:1px solid #2a3133!important;color:#626966;margin-top:30px;padding-top:28px}
 .cg-footer-title{color:#e5e1d8!important;font-family:Georgia,"Times New Roman",serif}
+.cg-inspector-shell{display:grid;grid-template-columns:230px minmax(0,1fr);min-height:calc(100vh - 70px);background:#080a0b}
+.cg-inspector-sidebar{position:sticky;top:0;align-self:start;min-height:calc(100vh - 70px);padding:22px 14px;border-right:1px solid #252b2d;background:#0d1011}
+.cg-inspector-sidebar-title{padding:4px 10px 18px;border-bottom:1px solid #252b2d}.cg-sidebar-kicker{display:block;font-size:9px;letter-spacing:.18em;color:#6f7a7d;font-weight:900;margin-bottom:5px}.cg-inspector-sidebar-title strong{font-size:19px;color:#f0f2f2}
+.cg-inspector-nav{display:flex;flex-direction:column;gap:5px;padding-top:16px}.cg-inspector-nav-item{display:flex;align-items:center;gap:11px;width:100%;padding:12px 11px;border:1px solid transparent;border-radius:8px;background:transparent;color:#8e999c;font-size:12px;font-weight:900;text-align:left;cursor:pointer}.cg-inspector-nav-item:hover{background:#151a1b;color:#e6e8e8}.cg-inspector-nav-item.is-active{background:#1a1f20;border-color:#d7a536;color:#f0c35a;box-shadow:inset 3px 0 0 #d7a536}.cg-inspector-nav-icon{width:22px;text-align:center;font-size:16px}.cg-inspector-start-button{width:100%;margin-top:22px;padding:12px 10px;border:1px solid #d7a536;border-radius:8px;background:#d7a536;color:#101212;font-size:11px;font-weight:950;cursor:pointer}.cg-inspector-main{min-width:0}
+.cg-inspector-main[data-inspector-active="dashboard"] [data-inspector-tab]:not([data-inspector-tab="dashboard"]),.cg-inspector-main[data-inspector-active="evidence"] [data-inspector-tab]:not([data-inspector-tab="evidence"]),.cg-inspector-main[data-inspector-active="compliance"] [data-inspector-tab]:not([data-inspector-tab="compliance"]),.cg-inspector-main[data-inspector-active="violations"] [data-inspector-tab]:not([data-inspector-tab="violations"]),.cg-inspector-main[data-inspector-active="records"] [data-inspector-tab]:not([data-inspector-tab="records"]),.cg-inspector-main[data-inspector-active="resources"] [data-inspector-tab]:not([data-inspector-tab="resources"]){display:none!important}
+@media(max-width:850px){.cg-inspector-shell{grid-template-columns:1fr}.cg-inspector-sidebar{position:sticky;top:0;z-index:20;min-height:auto;padding:10px;border-right:0;border-bottom:1px solid #252b2d}.cg-inspector-sidebar-title{display:none}.cg-inspector-nav{flex-direction:row;overflow-x:auto;padding:0;gap:6px}.cg-inspector-nav-item{min-width:max-content;width:auto;padding:10px 12px}.cg-inspector-start-button{margin-top:9px}}
 .cg-modal-backdrop{
   position:fixed;
   inset:0;
@@ -855,36 +910,35 @@ function InspectorMobileView() {
 @media(max-width:480px){.cg-note-card{grid-column:span 1}.cg-tool-grid{grid-template-columns:1fr}.cg-hero-title{font-size:26px}}
 `}</style>
 
-      <header className="cg-header">
-        <div className="cg-header-inner">
-          <div>
-            <div className="cg-logo">
-              <div className="cg-logo-mark" aria-hidden="true">
-                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 19 13 5l3 3-7 11" />
-                  <path d="m13 5 4 0 2 3" />
-                  <path d="M8 19h11" />
-                </svg>
-              </div>
-              <div>
-                <h1 className="cg-logo-title">
-                  Coal<span className="cg-accent-text">Guard</span>
-                </h1>
-                <p className="cg-logo-subtitle">Field Inspection & Compliance</p>
-              </div>
-            </div>
+
+
+      <div className="cg-inspector-shell">
+        <aside className="cg-inspector-sidebar" aria-label="Inspector navigation">
+          <div className="cg-inspector-sidebar-title">
+            <span className="cg-sidebar-kicker">FIELD CONTROL</span>
+            <strong>Inspector</strong>
           </div>
+          <nav className="cg-inspector-nav">
+            {[
+              ["dashboard", "⌂", "Dashboard"],
+               ["evidence", "◉", "Evidence Tools"],
+              ["compliance", "▣", "Compliance"],
+              ["violations", "!", "Violations"],
+              ["records", "▤", "Records"],
+              ["resources", "?", "Resources"],
+            ].map(([id, icon, label]) => (
+              <button key={id} type="button" className={`cg-inspector-nav-item ${activeTab === id ? "is-active" : ""}`} onClick={() => setActiveTab(id as InspectorTab)}>
+                <span className="cg-inspector-nav-icon">{icon}</span>
+                <span>{label}</span>
+              </button>
+            ))}
+          </nav>
+          <button type="button" className="cg-inspector-start-button" onClick={openInspection}>+ NEW INSPECTION</button>
+        </aside>
 
-          <div className="cg-status-badge">
-            <span className="cg-status-dot" />
-            Inspector System Online
-          </div>
-        </div>
-      </header>
+        <main className="cg-inspector-main" data-inspector-active={activeTab}>
 
-      <main className="cg-inspector-main">
-
-        <section className="cg-hero">
+        <section className="cg-hero" data-inspector-tab="dashboard">
           <div className="cg-hero-content">
             <div className="cg-hero-grid">
               <div>
@@ -951,7 +1005,7 @@ function InspectorMobileView() {
           </div>
         </section>
 
-        <section className="cg-section">
+        <section className="cg-section" data-inspector-tab="evidence">
           <div className="cg-section-head">
             <div>
               <p className="cg-section-label">Field Tools</p>
@@ -1071,9 +1125,9 @@ function InspectorMobileView() {
           </button>
         </section>
 
-        <ComplianceManagement />
-        <ViolationsManagement /> 
-        <section className="cg-panel">
+        <div data-inspector-tab="compliance"><ComplianceManagement /></div>
+        <div data-inspector-tab="violations"><ViolationsManagement /></div> 
+        <section className="cg-panel" data-inspector-tab="records">
 
           <div className="cg-header-inner">
             <div>
@@ -1108,7 +1162,7 @@ function InspectorMobileView() {
           )}
         </section>
 
-        <section className="mt-8">
+        <section className="mt-8" data-inspector-tab="resources">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">
             Resources & Support
           </p>
@@ -1156,7 +1210,7 @@ function InspectorMobileView() {
           </div>
         </section>
 
-        <section className="cg-panel">
+        <section className="cg-panel" data-inspector-tab="dashboard">
           <div className="cg-header-inner">
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
@@ -1213,6 +1267,7 @@ function InspectorMobileView() {
         </footer>
 
       </main>
+      </div>
 
       {showMinistry && (
         <div className="cg-modal-backdrop">
@@ -1793,6 +1848,12 @@ function InspectorMobileView() {
               onVoiceSaved={
                 handleVoiceSaved
               }
+              onTranscript={(text) => {
+                setObservations((current) =>
+                  current.trim() ? `${current.trim()} ${text}`.trim() : text
+                );
+                setStatusMessage("Whisper transcript added to the Observation field.");
+              }}
             />
 
           </div>

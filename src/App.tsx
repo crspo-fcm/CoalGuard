@@ -68,6 +68,22 @@ function App() {
   const [backendOnline, setBackendOnline] =
     useState(false);
 
+  const [theme, setTheme] = useState<"dark" | "light">(() => {
+    const savedTheme = localStorage.getItem("coalguard_theme");
+    return savedTheme === "light" ? "light" : "dark";
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute(
+      "data-theme",
+      theme
+    );
+    localStorage.setItem(
+      "coalguard_theme",
+      theme
+    );
+  }, [theme]);
+
   /* =========================================================
      BACKEND CONNECTION TEST
   ========================================================= */
@@ -366,6 +382,23 @@ function App() {
                 </p>
 
               </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setTheme(
+                    theme === "dark"
+                      ? "light"
+                      : "dark"
+                  )
+                }
+                className="cg-role-button"
+                title="Toggle theme"
+              >
+                {theme === "dark"
+                  ? "☀ Light"
+                  : "☾ Dark"}
+              </button>
 
               <button
                 type="button"

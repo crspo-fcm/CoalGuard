@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import ViolationsManagement from "./ViolationsManagement";
+import ResolvedRecords from "./ResolvedRecords";
 import MineMap from "./MineMap";
 import AuditLedger from "./AuditLedger";
 import ComplianceReports from "./ComplianceReports";
@@ -59,7 +60,7 @@ type AlertItem = {
   created_at: string;
 };
 
-const API_BASE = "http://localhost:3000/api";
+const API_BASE = "https://coalguard.onrender.com/api";
 
 const isResolved = (status?: string) =>
   String(status || "").toLowerCase() === "resolved";
@@ -164,6 +165,21 @@ function ManagerDashboard() {
   const [deletingInspectionId, setDeletingInspectionId] =
     useState<number | null>(null);
 
+  type ManagerSection =
+    | "dashboard"
+    | "inspections"
+    | "violations"
+    | "compliance"
+    | "risk"
+    | "map"
+    | "alerts"
+    | "reports"
+    | "audit"
+  | "resolved";
+
+  const [activeSection, setActiveSection] =
+    useState<ManagerSection>("dashboard");
+
   /*
    * ============================================================
    * LOAD LIVE BACKEND DATA
@@ -241,7 +257,7 @@ function ManagerDashboard() {
       void loadBackendData();
     }, 3000);
 
-    return () => {
+  return () => {
       window.clearInterval(interval);
     };
   }, []);
@@ -626,15 +642,80 @@ function ManagerDashboard() {
     },
   ];
 
+  const sidebarItems: Array<{
+    id: ManagerSection;
+    label: string;
+    icon: string;
+  }> = [
+    { id: "dashboard", label: "Dashboard", icon: "⌂" },
+    { id: "inspections", label: "Inspections", icon: "▣" },
+    { id: "violations", label: "Violations", icon: "!" },
+    { id: "compliance", label: "Compliance", icon: "✓" },
+    { id: "risk", label: "Risk Overview", icon: "◆" },
+    { id: "map", label: "Mine Map", icon: "⌖" },
+    { id: "alerts", label: "Alerts", icon: "!" },
+    { id: "reports", label: "Reports", icon: "▤" },
+    { id: "audit", label: "Audit Ledger", icon: "◈" },
+    { id: "resolved", label: "Resolved Records", icon: "✓" },
+  ];
+
+  const handleSectionChange = (section: ManagerSection) => {
+    setActiveSection(section);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <section className="mt-8 px-4 pb-10">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto flex max-w-[1500px] gap-5">
+        <aside className="sticky top-24 hidden h-fit w-60 shrink-0 lg:block">
+          <div className="cg-panel overflow-hidden">
+            <div className="border-b border-slate-800 px-4 py-4">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-400">
+                Manager Workspace
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                CoalGuard Operations
+              </p>
+            </div>
+
+            <nav className="p-2">
+              {sidebarItems.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => handleSectionChange(item.id)}
+                  className={`mb-1 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition ${
+                    activeSection === item.id
+                      ? "bg-violet-500/15 text-violet-300"
+                      : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
+                  }`}
+                >
+                  <span className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-700 text-xs">
+                    {item.icon}
+                  </span>
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+
+            <div className="border-t border-slate-800 p-3">
+              <div className="rounded-lg bg-slate-950/60 px-3 py-2 text-[11px] leading-5 text-slate-500">
+                Live backend workspace
+                <br />
+                Auto-refresh: 3 seconds
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <main className="min-w-0 flex-1">
 
         {/* =====================================================
             HEADER
         ===================================================== */}
 
-        <section className="cg-panel">
+                {activeSection === "dashboard" && (
+<section className="cg-panel">
           <div className="cg-panel-header">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-400">
@@ -673,12 +754,14 @@ function ManagerDashboard() {
             </div>
           )}
         </section>
+        )}
 
         {/* =====================================================
             KPI STRIP
         ===================================================== */}
 
-        <section className="cg-kpi-grid mt-4">
+                {activeSection === "dashboard" && (
+<section className="cg-kpi-grid mt-4">
 
           <div className="cg-kpi">
             <div className="cg-kpi-label">
@@ -752,12 +835,14 @@ function ManagerDashboard() {
           </div>
 
         </section>
+        )}
 
         {/* =====================================================
             MANAGER ACTION SUMMARY
         ===================================================== */}
 
-        <section
+                {activeSection === "alerts" && (
+<section
           className="cg-panel"
           style={{ marginTop: "14px" }}
         >
@@ -871,6 +956,7 @@ function ManagerDashboard() {
             )}
           </div>
         </section>
+        )}
 
         {/* =====================================================
             COMPLIANCE + RISK
@@ -883,7 +969,8 @@ function ManagerDashboard() {
 
           {/* COMPLIANCE */}
 
-          <section className="cg-panel">
+                  {activeSection === "compliance" && (
+<section className="cg-panel">
             <div className="cg-panel-header">
               <div>
                 <h2 className="cg-panel-title">
@@ -956,10 +1043,12 @@ function ManagerDashboard() {
               </div>
             </div>
           </section>
+        )}
 
           {/* RISK */}
 
-          <section className="cg-panel">
+                  {activeSection === "risk" && (
+<section className="cg-panel">
             <div className="cg-panel-header">
               <div>
                 <h2 className="cg-panel-title">
@@ -1077,6 +1166,7 @@ function ManagerDashboard() {
 
             </div>
           </section>
+        )}
 
         </div>
 
@@ -1084,7 +1174,8 @@ function ManagerDashboard() {
             LIVE FIELD INSPECTIONS
         ===================================================== */}
 
-        <section
+                {activeSection === "inspections" && (
+<section
           className="cg-panel"
           style={{ marginTop: "14px" }}
         >
@@ -1221,12 +1312,14 @@ function ManagerDashboard() {
 
           </div>
         </section>
+        )}
 
         {/* =====================================================
             MINE RISK MAP
         ===================================================== */}
 
-        <section
+                {activeSection === "map" && (
+<section
           className="cg-panel"
           style={{ marginTop: "14px" }}
         >
@@ -1253,12 +1346,14 @@ function ManagerDashboard() {
             <MineMap />
           </div>
         </section>
+        )}
 
         {/* =====================================================
             VIOLATION BREAKDOWN
         ===================================================== */}
 
-        <section
+                {activeSection === "violations" && (
+<section
           className="cg-panel"
           style={{ marginTop: "14px" }}
         >
@@ -1320,12 +1415,14 @@ function ManagerDashboard() {
 
           </div>
         </section>
+        )}
 
         {/* =====================================================
             AUDIT LEDGER
         ===================================================== */}
 
-        <section
+                {activeSection === "audit" && (
+<section
           className="cg-panel"
           style={{ marginTop: "14px" }}
         >
@@ -1352,18 +1449,25 @@ function ManagerDashboard() {
             <AuditLedger />
           </div>
         </section>
+        )}
 
         {/* =====================================================
             COMPLIANCE REPORTS
         ===================================================== */}
 
-        <ComplianceReports />
+        {activeSection === "resolved" && (
+          <ResolvedRecords />
+        )}
+
+        {activeSection === "reports" && (
+          <ComplianceReports />
+        )}
 
         {/* =====================================================
             LATEST INSPECTION SUMMARY
         ===================================================== */}
 
-        {latestInspection && (
+        {latestInspection && activeSection === "dashboard" && (
           <section
             className="cg-panel"
             style={{ marginTop: "14px" }}
@@ -1459,6 +1563,7 @@ function ManagerDashboard() {
           </section>
         )}
 
+      </main>
       </div>
     </section>
   );
