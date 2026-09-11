@@ -133,7 +133,7 @@ function App() {
        * IMPORTANT:
        * Production login goes directly to Render.
        *
-       * https://coalguard.onrender.com/api/auth/login
+       * `${API_BASE_URL}/api/auth/login`
        */
 
       const response = await fetch(
