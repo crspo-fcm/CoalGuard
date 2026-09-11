@@ -124,13 +124,7 @@ function App() {
       return;
     }
 
-    if (!backendOnline) {
-      setError(
-        "Backend is currently unavailable. Please try again."
-      );
-
-      return;
-    }
+ 
 
     setLoading(true);
 
