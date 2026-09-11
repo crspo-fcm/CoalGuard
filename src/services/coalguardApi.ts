@@ -1,3 +1,5 @@
+import { API_BASE_URL } from "../api";
+
 export type BackendInspection = {
   id: number;
   observation: string;
@@ -33,76 +35,142 @@ export type BackendFraudAlert = {
   location_name?: string;
 };
 
-const api = async (path: string, options?: RequestInit) => {
-  const response = await fetch(path, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(options?.headers || {}),
-    },
-  });
+/* =========================================================
+   CENTRAL API REQUEST HELPER
+   All requests go to the deployed Render backend.
+========================================================= */
 
-  const data = await response.json().catch(() => ({}));
+const api = async (
+  path: string,
+  options?: RequestInit
+) => {
+  const response = await fetch(
+    `${API_BASE_URL}${path}`,
+    {
+      ...options,
+
+      headers: {
+        "Content-Type": "application/json",
+        ...(options?.headers || {}),
+      },
+    }
+  );
+
+  const data = await response
+    .json()
+    .catch(() => ({}));
 
   if (!response.ok) {
     throw new Error(
-      data.message || `Request failed (${response.status})`
+      data.message ||
+        `Request failed (${response.status})`
     );
   }
 
   return data;
 };
 
+/* =========================================================
+   BACKEND HEALTH
+========================================================= */
+
 export async function checkBackendHealth() {
   return api("/api/health");
 }
 
-export async function getBackendInspections(): Promise<BackendInspection[]> {
-  const data = await api("/api/inspections");
+/* =========================================================
+   INSPECTIONS
+========================================================= */
 
-  return Array.isArray(data.inspections)
+export async function getBackendInspections(): Promise<
+  BackendInspection[]
+> {
+  const data = await api(
+    "/api/inspections"
+  );
+
+  return Array.isArray(
+    data.inspections
+  )
     ? data.inspections
     : [];
 }
 
-export async function submitBackendInspection(payload: {
-  inspector_id: number;
-  location_id: number;
-  latitude: number;
-  longitude: number;
-  observation?: string;
-}) {
-  return api("/api/inspections", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+export async function submitBackendInspection(
+  payload: {
+    inspector_id: number;
+    location_id: number;
+    latitude: number;
+    longitude: number;
+    observation?: string;
+  }
+) {
+  return api(
+    "/api/inspections",
+    {
+      method: "POST",
+
+      body: JSON.stringify(
+        payload
+      ),
+    }
+  );
 }
 
 export async function deleteBackendInspection(
   inspectionId: number
 ) {
-  return api(`/api/inspections/${inspectionId}`, {
-    method: "DELETE",
-  });
+  return api(
+    `/api/inspections/${inspectionId}`,
+    {
+      method: "DELETE",
+    }
+  );
 }
 
-export async function getMineLocations(): Promise<MineLocation[]> {
-  const data = await api("/api/locations");
+/* =========================================================
+   MINE LOCATIONS
+========================================================= */
 
-  return Array.isArray(data.locations)
+export async function getMineLocations(): Promise<
+  MineLocation[]
+> {
+  const data = await api(
+    "/api/locations"
+  );
+
+  return Array.isArray(
+    data.locations
+  )
     ? data.locations
     : [];
 }
 
-export async function getFraudAlerts(): Promise<BackendFraudAlert[]> {
-  const data = await api("/api/inspections/fraud-alerts");
+/* =========================================================
+   GPS FRAUD ALERTS
+========================================================= */
 
-  return Array.isArray(data.alerts)
+export async function getFraudAlerts(): Promise<
+  BackendFraudAlert[]
+> {
+  const data = await api(
+    "/api/inspections/fraud-alerts"
+  );
+
+  return Array.isArray(
+    data.alerts
+  )
     ? data.alerts
     : [];
 }
-export async function deleteFraudAlert(alertId: number) {
-  return api(`/api/inspections/fraud-alerts/${alertId}`, {
-    method: "DELETE",
-  });
+
+export async function deleteFraudAlert(
+  alertId: number
+) {
+  return api(
+    `/api/inspections/fraud-alerts/${alertId}`,
+    {
+      method: "DELETE",
+    }
+  );
 }
