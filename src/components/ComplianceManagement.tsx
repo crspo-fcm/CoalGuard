@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-
+import { API_BASE_URL } from "../api"; 
 type ComplianceStatus =
   | "Compliant"
   | "Non-Compliant"
@@ -282,10 +282,9 @@ function ComplianceManagement() {
         setLoading(true);
       }
 
-      const response = await fetch(
-        "/api/violations"
-      );
-
+     const response = await fetch(
+  `${API_BASE_URL}/api/violations`
+);
       const data = await response
         .json()
         .catch(() => ({}));

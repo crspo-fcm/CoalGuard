@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-
+import { API_BASE_URL } from "../api";
 import {
   deleteFraudAlert,
   getFraudAlerts,
@@ -275,7 +275,7 @@ export default function AlertsCenter() {
 
       const response =
         await fetch(
-          "/api/violations"
+         `${API_BASE_URL}/api/violations`
         );
 
       const data =

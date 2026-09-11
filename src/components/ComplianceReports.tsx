@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { API_BASE_URL } from "../api";
 import {
   getBackendInspections,
   type BackendInspection,
@@ -149,7 +149,7 @@ function ComplianceReports() {
         setViolationsLoading(true);
 
         const response = await fetch(
-          "/api/violations"
+          `${API_BASE_URL}/api/violations`
         );
 
         const data =
