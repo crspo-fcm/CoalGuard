@@ -2427,3 +2427,113 @@ html[data-theme="light"] [class~="text-amber-300"] {
 /* =========================================================
    FINAL — DON'T CHANGE DARK MODE
    ========================================================= */
+   /* =========================================================
+   COALGUARD — LIGHT THEME MODAL FIX
+   ========================================================= */
+
+html[data-theme="light"] .fixed.inset-0 {
+  background: rgba(35, 31, 27, 0.45) !important;
+}
+
+/* Modal / dialog containers */
+html[data-theme="light"] .fixed.inset-0 > div {
+  background: #fffdf8 !important;
+  color: #292722 !important;
+  border-color: #d8d0c4 !important;
+}
+
+/* Nested dark Tailwind panels inside modals */
+html[data-theme="light"] .fixed.inset-0 .bg-slate-950,
+html[data-theme="light"] .fixed.inset-0 .bg-slate-900,
+html[data-theme="light"] .fixed.inset-0 .bg-slate-800,
+html[data-theme="light"] .fixed.inset-0 .bg-neutral-900,
+html[data-theme="light"] .fixed.inset-0 .bg-black {
+  background: #fffdf8 !important;
+  color: #292722 !important;
+}
+
+/* Modal headings */
+html[data-theme="light"] .fixed.inset-0 h1,
+html[data-theme="light"] .fixed.inset-0 h2,
+html[data-theme="light"] .fixed.inset-0 h3,
+html[data-theme="light"] .fixed.inset-0 h4 {
+  color: #292722 !important;
+}
+
+/* Modal normal text */
+html[data-theme="light"] .fixed.inset-0 p,
+html[data-theme="light"] .fixed.inset-0 span,
+html[data-theme="light"] .fixed.inset-0 label {
+  color: #625c54 !important;
+}
+
+/* Secondary text */
+html[data-theme="light"] .fixed.inset-0 .text-slate-300,
+html[data-theme="light"] .fixed.inset-0 .text-slate-400,
+html[data-theme="light"] .fixed.inset-0 .text-slate-500 {
+  color: #6f685f !important;
+}
+
+/* White text must become readable in light mode */
+html[data-theme="light"] .fixed.inset-0 .text-white {
+  color: #292722 !important;
+}
+
+/* Inputs */
+html[data-theme="light"] .fixed.inset-0 input,
+html[data-theme="light"] .fixed.inset-0 textarea,
+html[data-theme="light"] .fixed.inset-0 select {
+  background: #ffffff !important;
+  color: #292722 !important;
+  border-color: #d4ccc0 !important;
+}
+
+/* Input placeholder */
+html[data-theme="light"] .fixed.inset-0 input::placeholder,
+html[data-theme="light"] .fixed.inset-0 textarea::placeholder {
+  color: #8b8379 !important;
+}
+
+/* Select options */
+html[data-theme="light"] .fixed.inset-0 select option {
+  background: #ffffff !important;
+  color: #292722 !important;
+}
+
+/* Dark translucent utility backgrounds */
+html[data-theme="light"] .fixed.inset-0 .bg-white\/5,
+html[data-theme="light"] .fixed.inset-0 .bg-white\/10 {
+  background: #f1ece4 !important;
+}
+
+/* Modal borders */
+html[data-theme="light"] .fixed.inset-0 .border-white\/10,
+html[data-theme="light"] .fixed.inset-0 .border-white\/20 {
+  border-color: #d8d0c4 !important;
+}
+
+/* Close buttons */
+html[data-theme="light"] .fixed.inset-0 button {
+  color: #4b463f;
+}
+
+html[data-theme="light"] .fixed.inset-0 button:hover {
+  color: #201d19;
+}
+
+/* Keep status/action colours visible */
+html[data-theme="light"] .fixed.inset-0 .text-red-400 {
+  color: #9b4d43 !important;
+}
+
+html[data-theme="light"] .fixed.inset-0 .text-green-400 {
+  color: #4d704f !important;
+}
+
+html[data-theme="light"] .fixed.inset-0 .text-yellow-400 {
+  color: #8a681f !important;
+}
+
+html[data-theme="light"] .fixed.inset-0 .text-cyan-400 {
+  color: #23718a !important;
+}

@@ -1,6 +1,16 @@
 import { useState } from "react";
 
-function GPSLocator() {
+type GPSData = {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+};
+
+type GPSLocatorProps = {
+  onLocationCaptured?: (data: GPSData) => void;
+};
+
+function GPSLocator({ onLocationCaptured }: GPSLocatorProps) {
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [accuracy, setAccuracy] = useState<number | null>(null);
@@ -16,11 +26,21 @@ function GPSLocator() {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
+        const {
+          latitude,
+          longitude,
+          accuracy,
+        } = position.coords;
 
         setLatitude(latitude);
         setLongitude(longitude);
         setAccuracy(accuracy);
+
+        onLocationCaptured?.({
+          latitude,
+          longitude,
+          accuracy,
+        });
 
         setStatus(
           `Location acquired (±${accuracy.toFixed(0)} m)`
@@ -41,7 +61,7 @@ function GPSLocator() {
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 15000,
         maximumAge: 0,
       }
     );
@@ -59,6 +79,7 @@ function GPSLocator() {
       </p>
 
       <button
+        type="button"
         onClick={getLocation}
         className="mt-4 w-full rounded-xl bg-cyan-500 py-3 font-black text-slate-950"
       >

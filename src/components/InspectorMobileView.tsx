@@ -35,6 +35,8 @@ type Inspection = {
   safetyStatus: string;
   latitude: string;
   longitude: string;
+  gpsAccuracy?: number | null;
+  gpsTimestamp?: number | null;
   observations: string;
   emergencyExit: string;
   ventilation: string;
@@ -142,6 +144,8 @@ function InspectorMobileView() {
 
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
+  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
+  const [gpsTimestamp, setGpsTimestamp] = useState<number | null>(null);
   const [gpsMode, setGpsMode] = useState<"live" | "demo">("live");
 
   const [observations, setObservations] = useState("");
@@ -226,10 +230,13 @@ function InspectorMobileView() {
         setLongitude(
           position.coords.longitude.toFixed(6)
         );
-        setGpsMode("live");
+        
+        setGpsAccuracy(position.coords.accuracy);
+        setGpsTimestamp(position.timestamp);
+setGpsMode("live");
 
         setStatusMessage(
-          "GPS location captured successfully."
+          `GPS location captured successfully (±${position.coords.accuracy.toFixed(0)} m).`
         );
       },
       () => {
@@ -483,6 +490,10 @@ function InspectorMobileView() {
 
       longitude,
 
+
+      gpsAccuracy,
+
+      gpsTimestamp,
       observations:
         observations.trim(),
 
@@ -658,6 +669,8 @@ function InspectorMobileView() {
     setLatitude("");
 
     setLongitude("");
+    setGpsAccuracy(null);
+    setGpsTimestamp(null);
     setGpsMode("live");
 
     setObservations("");
@@ -1575,6 +1588,38 @@ function InspectorMobileView() {
               </button>
             </div>
 
+            {(latitude || longitude) && (
+              <div className="mt-3 rounded-xl border border-cyan-400/20 bg-cyan-400/5 p-4">
+                <div className="grid gap-2 text-xs sm:grid-cols-3">
+                  <div>
+                    <p className="font-bold uppercase tracking-widest text-slate-500">
+                      Latitude
+                    </p>
+                    <p className="mt-1 font-bold text-slate-200">{latitude || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="font-bold uppercase tracking-widest text-slate-500">
+                      Longitude
+                    </p>
+                    <p className="mt-1 font-bold text-slate-200">{longitude || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="font-bold uppercase tracking-widest text-slate-500">
+                      Accuracy
+                    </p>
+                    <p className="mt-1 font-bold text-slate-200">
+                      {gpsAccuracy !== null ? `±${gpsAccuracy.toFixed(1)} m` : "—"}
+                    </p>
+                  </div>
+                </div>
+                {gpsTimestamp && (
+                  <p className="mt-3 text-[11px] text-slate-500">
+                    GPS captured: {new Date(gpsTimestamp).toLocaleString("en-IN")}
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="mt-5">
               <h3 className="font-black cg-success-text">
                 ☑️ Safety Checklist
@@ -1778,7 +1823,18 @@ function InspectorMobileView() {
               </button>
             </div>
 
-            <GPSLocator />
+            <GPSLocator
+              onLocationCaptured={({ latitude, longitude, accuracy }) => {
+                setLatitude(latitude.toFixed(6));
+                setLongitude(longitude.toFixed(6));
+                setGpsAccuracy(accuracy);
+                setGpsTimestamp(Date.now());
+                setGpsMode("live");
+                setStatusMessage(
+                  `GPS location captured successfully (±${accuracy.toFixed(0)} m).`
+                );
+              }}
+            />
 
           </div>
         </div>

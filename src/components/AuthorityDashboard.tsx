@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { API_BASE_URL } from "../api";
 import AuditLedger from "./AuditLedger";
 import ComplianceReports from "./ComplianceReports";
 import MineMap from "./MineMap";
@@ -298,10 +299,10 @@ function AuthorityDashboard() {
         fraudResponse,
         mineResponse,
       ] = await Promise.all([
-        fetch("/api/inspections"),
-        fetch("/api/violations"),
-        fetch("/api/inspections/fraud-alerts"),
-        fetch("/api/mines"),
+        fetch(`${API_BASE_URL}/api/inspections`),
+        fetch(`${API_BASE_URL}/api/violations`),
+        fetch(`${API_BASE_URL}/api/inspections/fraud-alerts`),
+        fetch(`${API_BASE_URL}/api/mines`),
       ]);
 
       const inspectionData =
