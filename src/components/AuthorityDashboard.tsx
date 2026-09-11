@@ -357,10 +357,10 @@ function AuthorityDashboard() {
         fraudResponse,
         mineResponse,
       ] = await Promise.all([
-        fetch("/api/inspections"),
+        fetch(`${API_BASE_URL}/api/inspections`),
         fetch(`${API_BASE_URL}/api/violations`),
-        fetch("/api/inspections/fraud-alerts"),
-        fetch("/api/mines"),
+        fetch(`${API_BASE_URL}/api/inspections/fraud-alerts`),
+        fetch(`${API_BASE_URL}/api/mines`),
       ]);
 
       const inspectionData =

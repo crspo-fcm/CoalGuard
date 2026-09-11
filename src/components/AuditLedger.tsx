@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { API_BASE_URL } from "../api"; 
 type AuditLog = {
   id: number;
   inspection_id: number | null;
@@ -45,7 +45,7 @@ function AuditLedger() {
 
   const loadAuditLogs = async () => {
     try {
-      const response = await fetch("/api/audit");
+      const response = await fetch(`${API_BASE_URL}/api/audit`);
 
       if (!response.ok) {
         throw new Error("Failed to load audit logs");

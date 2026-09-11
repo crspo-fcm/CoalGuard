@@ -200,9 +200,9 @@ function MineMap() {
           locationsResponse,
           violationsResponse,
         ] = await Promise.all([
-          fetch("/api/mines"),
-          fetch("/api/inspections"),
-          fetch("/api/locations"),
+         fetch(`${API_BASE_URL}/api/mines`),
+          fetch(`${API_BASE_URL}/api/inspections`),
+          fetch(`${API_BASE_URL}/api/locations`),
          fetch(`${API_BASE_URL}/api/violations`),
         ]);
 
