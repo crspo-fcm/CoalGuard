@@ -17,6 +17,31 @@ type SavedVoiceNote = {
 
 const STORAGE_KEY = "coalguard_voice_notes";
 
+type SpeechRecognitionEventLike = Event & {
+  resultIndex: number;
+  results: {
+    [index: number]: {
+      isFinal: boolean;
+      [index: number]: { transcript: string };
+    };
+    length: number;
+  };
+};
+
+type SpeechRecognitionLike = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: ((event: Event) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+
+
 function VoiceRecorder({
   inspectionId,
   onVoiceSaved,
@@ -27,6 +52,10 @@ function VoiceRecorder({
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<number | null>(null);
   const secondsRef = useRef(0);
+  const speechRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const speechFinalTextRef = useRef("");
+  const speechLiveTextRef = useRef("");
+  const speechActiveRef = useRef(false);
 
   const [isRecording, setIsRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
@@ -49,6 +78,17 @@ function VoiceRecorder({
         mediaRecorderRef.current.state !== "inactive"
       ) {
         mediaRecorderRef.current.stop();
+      }
+
+      speechActiveRef.current = false;
+
+      if (speechRecognitionRef.current) {
+        try {
+          speechRecognitionRef.current.stop();
+        } catch {
+          // Recognition may already be stopped.
+        }
+        speechRecognitionRef.current = null;
       }
 
       if (streamRef.current) {
@@ -78,48 +118,112 @@ function VoiceRecorder({
     }
   };
 
-  const transcribeWithWhisper = async (blob: Blob): Promise<string> => {
-    const formData = new FormData();
+  const getSpeechRecognition = (): SpeechRecognitionLike | null => {
+    const speechWindow = window as typeof window & {
+      SpeechRecognition?: SpeechRecognitionConstructor;
+      webkitSpeechRecognition?: SpeechRecognitionConstructor;
+    };
 
-    formData.append(
-      "audio",
-      blob,
-      `coalguard-voice-${Date.now()}.webm`
-    );
+    const SpeechRecognition =
+      speechWindow.SpeechRecognition ||
+      speechWindow.webkitSpeechRecognition;
 
-    const response = await fetch(
-      "http://127.0.0.1:5001/transcribe",
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
-
-    if (!response.ok) {
-      let message = `Whisper service returned HTTP ${response.status}.`;
-
-      try {
-        const errorData = await response.json();
-
-        if (errorData?.error) {
-          message = errorData.error;
-        }
-      } catch {
-        // Keep the HTTP error message.
-      }
-
-      throw new Error(message);
+    if (!SpeechRecognition) {
+      return null;
     }
 
-    const data = await response.json();
+    return new SpeechRecognition();
+  };
 
-    if (!data?.success) {
-      throw new Error(
-        data?.error || "Whisper could not transcribe the recording."
+  const startSpeechToText = () => {
+    const recognition = getSpeechRecognition();
+
+    if (!recognition) {
+      setStatus(
+        "Audio recording is active. Speech-to-text is not supported in this browser."
       );
+      return;
     }
 
-    return String(data.text || "").trim();
+    speechFinalTextRef.current = "";
+    speechLiveTextRef.current = "";
+    speechActiveRef.current = true;
+
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-IN";
+
+    recognition.onresult = (event) => {
+      let interimText = "";
+
+      for (let index = event.resultIndex; index < event.results.length; index += 1) {
+        const result = event.results[index];
+        const text = result[0]?.transcript || "";
+
+        if (result.isFinal) {
+          speechFinalTextRef.current += `${text} `;
+        } else {
+          interimText += text;
+        }
+      }
+
+      const combinedText =
+        `${speechFinalTextRef.current} ${interimText}`.trim();
+
+      speechLiveTextRef.current = combinedText;
+      setTranscript(combinedText);
+
+    };
+
+    recognition.onerror = (event) => {
+      console.warn("Speech-to-text error:", event);
+      setStatus("Speech-to-text is still recording. Please continue speaking.");
+    };
+
+    recognition.onend = () => {
+      if (speechActiveRef.current) {
+        try {
+          recognition.start();
+        } catch {
+          // Browser may reject a rapid restart. Recording continues normally.
+        }
+      }
+    };
+
+    speechRecognitionRef.current = recognition;
+
+    try {
+      recognition.start();
+    } catch (error) {
+      console.warn("Speech-to-text could not start:", error);
+      speechActiveRef.current = false;
+      speechRecognitionRef.current = null;
+    }
+  };
+
+  const stopSpeechToText = () => {
+    speechActiveRef.current = false;
+
+    const recognition = speechRecognitionRef.current;
+
+    if (recognition) {
+      try {
+        recognition.stop();
+      } catch {
+        // Recognition may already be stopped.
+      }
+    }
+
+    speechRecognitionRef.current = null;
+
+    const finalText = speechFinalTextRef.current.trim();
+    setTranscript(finalText);
+
+    if (onTranscript && finalText) {
+      onTranscript(finalText);
+    }
+
+    return finalText;
   };
 
   const startRecording = async () => {
@@ -212,36 +316,13 @@ function VoiceRecorder({
           return;
         }
 
-        setStatus("Sending audio to Whisper for transcription...");
+        const speechTranscript = stopSpeechToText();
 
-        let whisperTranscript = "";
-
-        try {
-          whisperTranscript =
-            await transcribeWithWhisper(blob);
-
-          setTranscript(whisperTranscript);
-
-          if (onTranscript && whisperTranscript) {
-            onTranscript(whisperTranscript);
-          }
-
-          setStatus(
-            whisperTranscript
-              ? "Whisper transcription complete. Saving voice evidence..."
-              : "Whisper returned no text. Saving audio evidence..."
-          );
-        } catch (error) {
-          console.error("Whisper transcription failed:", error);
-
-          setTranscript("");
-
-          setStatus(
-            error instanceof Error
-              ? `Audio saved, but Whisper transcription failed: ${error.message}`
-              : "Audio saved, but Whisper transcription failed."
-          );
-        }
+        setStatus(
+          speechTranscript
+            ? "Speech-to-text complete. Saving voice evidence..."
+            : "Saving voice evidence..."
+        );
 
         const reader = new FileReader();
 
@@ -253,7 +334,7 @@ function VoiceRecorder({
             id: Date.now(),
             inspectionId,
             audio: audioData,
-            text: whisperTranscript,
+            text: speechTranscript,
             timestamp:
               new Date().toLocaleString(),
             duration: secondsRef.current,
@@ -289,8 +370,8 @@ function VoiceRecorder({
             setNotes(allNotes);
 
             setStatus(
-              whisperTranscript
-                ? "✅ Voice + Whisper transcript saved and attached to this inspection."
+              speechTranscript
+                ? "✅ Voice + transcript saved and attached to this inspection."
                 : "✅ Voice note saved. No transcript was available."
             );
 
@@ -310,11 +391,12 @@ function VoiceRecorder({
       };
 
       recorder.start();
+      startSpeechToText();
 
       setIsRecording(true);
       setSeconds(0);
       setStatus(
-        "🎙️ RECORDING — speak your observation. Whisper transcription runs when you press STOP."
+        "🎙️ RECORDING — speak your observation. Speech-to-text is running."
       );
 
       timerRef.current =
@@ -473,7 +555,7 @@ function VoiceRecorder({
       <div className="mt-4 rounded-xl border border-cyan-400/20 bg-cyan-400/5 p-4">
         <div className="flex items-center justify-between">
           <span className="text-sm font-black text-cyan-300">
-            📝 WHISPER TRANSCRIPT
+            📝 SPEECH-TO-TEXT TRANSCRIPT
           </span>
 
           <span className="text-xs text-slate-500">
@@ -483,7 +565,7 @@ function VoiceRecorder({
 
         <p className="mt-3 min-h-[72px] rounded-lg bg-black/20 p-3 text-sm leading-6 text-slate-200">
           {transcript ||
-            "Record your observation, press STOP, and Whisper will convert the audio into text here."}
+            "Record your observation, press STOP, and Speech-to-text will convert your speech into text here."}
         </p>
       </div>
 
@@ -533,7 +615,7 @@ function VoiceRecorder({
                   <div className="mt-3 rounded-xl border border-cyan-400/20 bg-cyan-400/5 p-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-black uppercase tracking-widest text-cyan-300">
-                        📝 WHISPER TEXT
+                        📝 TRANSCRIPT TEXT
                       </span>
                       <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
                         Speech → Text
@@ -542,7 +624,7 @@ function VoiceRecorder({
 
                     <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-200">
                       {note.text?.trim() ||
-                        "No Whisper text was saved for this voice note."}
+                        "No transcript was saved for this voice note."}
                     </p>
                   </div>
 
@@ -612,7 +694,7 @@ function VoiceRecorder({
                   <div className="mt-3 rounded-xl border border-cyan-400/20 bg-cyan-400/5 p-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-black uppercase tracking-widest text-cyan-300">
-                        📝 WHISPER TEXT
+                        📝 TRANSCRIPT TEXT
                       </span>
                       <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
                         Speech → Text
@@ -621,7 +703,7 @@ function VoiceRecorder({
 
                     <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-200">
                       {note.text?.trim() ||
-                        "No Whisper text was saved for this voice note."}
+                        "No transcript was saved for this voice note."}
                     </p>
                   </div>
 

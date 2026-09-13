@@ -35,8 +35,6 @@ type Inspection = {
   safetyStatus: string;
   latitude: string;
   longitude: string;
-  gpsAccuracy?: number | null;
-  gpsTimestamp?: number | null;
   observations: string;
   emergencyExit: string;
   ventilation: string;
@@ -144,8 +142,6 @@ function InspectorMobileView() {
 
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
-  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
-  const [gpsTimestamp, setGpsTimestamp] = useState<number | null>(null);
   const [gpsMode, setGpsMode] = useState<"live" | "demo">("live");
 
   const [observations, setObservations] = useState("");
@@ -230,13 +226,10 @@ function InspectorMobileView() {
         setLongitude(
           position.coords.longitude.toFixed(6)
         );
-        
-        setGpsAccuracy(position.coords.accuracy);
-        setGpsTimestamp(position.timestamp);
-setGpsMode("live");
+        setGpsMode("live");
 
         setStatusMessage(
-          `GPS location captured successfully (±${position.coords.accuracy.toFixed(0)} m).`
+          "GPS location captured successfully."
         );
       },
       () => {
@@ -490,10 +483,6 @@ setGpsMode("live");
 
       longitude,
 
-
-      gpsAccuracy,
-
-      gpsTimestamp,
       observations:
         observations.trim(),
 
@@ -669,8 +658,6 @@ setGpsMode("live");
     setLatitude("");
 
     setLongitude("");
-    setGpsAccuracy(null);
-    setGpsTimestamp(null);
     setGpsMode("live");
 
     setObservations("");
@@ -1588,38 +1575,6 @@ setGpsMode("live");
               </button>
             </div>
 
-            {(latitude || longitude) && (
-              <div className="mt-3 rounded-xl border border-cyan-400/20 bg-cyan-400/5 p-4">
-                <div className="grid gap-2 text-xs sm:grid-cols-3">
-                  <div>
-                    <p className="font-bold uppercase tracking-widest text-slate-500">
-                      Latitude
-                    </p>
-                    <p className="mt-1 font-bold text-slate-200">{latitude || "—"}</p>
-                  </div>
-                  <div>
-                    <p className="font-bold uppercase tracking-widest text-slate-500">
-                      Longitude
-                    </p>
-                    <p className="mt-1 font-bold text-slate-200">{longitude || "—"}</p>
-                  </div>
-                  <div>
-                    <p className="font-bold uppercase tracking-widest text-slate-500">
-                      Accuracy
-                    </p>
-                    <p className="mt-1 font-bold text-slate-200">
-                      {gpsAccuracy !== null ? `±${gpsAccuracy.toFixed(1)} m` : "—"}
-                    </p>
-                  </div>
-                </div>
-                {gpsTimestamp && (
-                  <p className="mt-3 text-[11px] text-slate-500">
-                    GPS captured: {new Date(gpsTimestamp).toLocaleString("en-IN")}
-                  </p>
-                )}
-              </div>
-            )}
-
             <div className="mt-5">
               <h3 className="font-black cg-success-text">
                 ☑️ Safety Checklist
@@ -1824,17 +1779,15 @@ setGpsMode("live");
             </div>
 
             <GPSLocator
-              onLocationCaptured={({ latitude, longitude, accuracy }) => {
-                setLatitude(latitude.toFixed(6));
-                setLongitude(longitude.toFixed(6));
-                setGpsAccuracy(accuracy);
-                setGpsTimestamp(Date.now());
-                setGpsMode("live");
-                setStatusMessage(
-                  `GPS location captured successfully (±${accuracy.toFixed(0)} m).`
-                );
-              }}
-            />
+  onLocationCaptured={({ latitude, longitude }) => {
+    setLatitude(latitude.toFixed(6));
+    setLongitude(longitude.toFixed(6));
+    setGpsMode("live");
+    setStatusMessage(
+      "GPS location captured successfully."
+    );
+  }}
+/>
 
           </div>
         </div>
@@ -1905,10 +1858,24 @@ setGpsMode("live");
                 handleVoiceSaved
               }
               onTranscript={(text) => {
-                setObservations((current) =>
-                  current.trim() ? `${current.trim()} ${text}`.trim() : text
-                );
-                setStatusMessage("Whisper transcript added to the Observation field.");
+                const cleanedText = text.trim().replace(/\s+/g, " ");
+
+                if (!cleanedText) {
+                  return;
+                }
+
+                setObservations((current) => {
+                  const currentText = current.trim();
+
+                  if (!currentText) {
+                    return cleanedText;
+                  }
+
+                  // Add the completed voice transcript only once when recording stops.
+                  return `${currentText} ${cleanedText}`.trim();
+                });
+
+                setStatusMessage("Speech-to-text transcript added to the Observation field.");
               }}
             />
 

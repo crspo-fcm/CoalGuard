@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import ViolationsManagement from "./ViolationsManagement";
-import ResolvedRecords from "./ResolvedRecords";
+import ResolvedRecords from "./ResolvedRecords.tsx";
 import MineMap from "./MineMap";
 import AuditLedger from "./AuditLedger";
 import ComplianceReports from "./ComplianceReports";

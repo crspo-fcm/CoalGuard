@@ -2537,3 +2537,419 @@ html[data-theme="light"] .fixed.inset-0 .text-yellow-400 {
 html[data-theme="light"] .fixed.inset-0 .text-cyan-400 {
   color: #23718a !important;
 }
+
+/* =========================================================
+   LIGHT THEME — INSPECTION FORM
+   Beige / cream form styling
+   ========================================================= */
+
+html[data-theme="light"] .cg-modal {
+  background: #ffffff !important;
+  border: 1px solid #e5dcc6 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 18px 50px rgba(80, 60, 35, 0.18) !important;
+  color: #1f2937 !important;
+}
+
+html[data-theme="light"] .cg-modal-backdrop {
+  background: rgba(38, 35, 31, 0.42) !important;
+  backdrop-filter: blur(4px);
+}
+
+/* Modal headings */
+html[data-theme="light"] .cg-modal h1,
+html[data-theme="light"] .cg-modal h2,
+html[data-theme="light"] .cg-modal h3,
+html[data-theme="light"] .cg-modal h4 {
+  color: #1f2937 !important;
+}
+
+/* Secondary text */
+html[data-theme="light"] .cg-modal p {
+  color: #6b7280;
+}
+
+/* Form labels */
+html[data-theme="light"] .cg-modal label {
+  color: #1f2937 !important;
+  font-weight: 600;
+}
+
+/* Inputs */
+html[data-theme="light"] .cg-modal input,
+html[data-theme="light"] .cg-modal textarea,
+html[data-theme="light"] .cg-modal select {
+  width: 100%;
+  background: #fffdf7 !important;
+  color: #1f2937 !important;
+  border: 1px solid #d1c7b7 !important;
+  border-radius: 8px !important;
+}
+
+/* Placeholder */
+html[data-theme="light"] .cg-modal input::placeholder,
+html[data-theme="light"] .cg-modal textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Input focus */
+html[data-theme="light"] .cg-modal input:focus,
+html[data-theme="light"] .cg-modal textarea:focus,
+html[data-theme="light"] .cg-modal select:focus {
+  outline: none !important;
+  border-color: #d97706 !important;
+  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.15) !important;
+}
+
+/* Section/card blocks inside inspection form */
+html[data-theme="light"] .cg-modal .bg-slate-950,
+html[data-theme="light"] .cg-modal .bg-slate-900,
+html[data-theme="light"] .cg-modal .bg-slate-800 {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+}
+
+/* Borders */
+html[data-theme="light"] .cg-modal .border-slate-800,
+html[data-theme="light"] .cg-modal .border-slate-700,
+html[data-theme="light"] .cg-modal .border-slate-600 {
+  border-color: #e5dcc6 !important;
+}
+
+/* Orange/gold primary buttons */
+html[data-theme="light"] .cg-modal .cg-button-primary {
+  background: #d97706 !important;
+  border-color: #d97706 !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="light"] .cg-modal .cg-button-primary:hover {
+  background: #b45309 !important;
+  border-color: #b45309 !important;
+}
+
+/* Cancel / secondary buttons */
+html[data-theme="light"] .cg-modal .cg-button-secondary {
+  background: #ffffff !important;
+  border-color: #d1c7b7 !important;
+  color: #374151 !important;
+}
+
+html[data-theme="light"] .cg-modal .cg-button-secondary:hover {
+  background: #f8f3e9 !important;
+}
+
+/* Modal close button */
+html[data-theme="light"] .cg-modal .cg-icon-button {
+  background: #ffffff !important;
+  border-color: #e5dcc6 !important;
+  color: #374151 !important;
+}
+
+html[data-theme="light"] .cg-modal .cg-icon-button:hover {
+  background: #f8f3e9 !important;
+}
+
+/* Gold accent text */
+html[data-theme="light"] .cg-modal .cg-accent-text {
+  color: #d97706 !important;
+}
+
+/* Success / danger messages */
+html[data-theme="light"] .cg-modal .cg-success-text {
+  color: #3f6945 !important;
+}
+
+html[data-theme="light"] .cg-modal .cg-danger-text {
+  color: #93483f !important;
+}
+/* =========================================================
+   COALGUARD LIGHT THEME — INSPECTION MODAL FIX
+   Fixes remaining dark cards in light mode
+   ========================================================= */
+
+/* ---------- AUTOMATIC INFO BOX ---------- */
+
+html[data-theme="light"] .cg-modal .cg-subpanel {
+  background: #f3eee5 !important;
+  border: 1px solid #d7cec0 !important;
+  color: #292722 !important;
+}
+
+html[data-theme="light"] .cg-modal .cg-subpanel p {
+  color: #5f5951 !important;
+}
+
+html[data-theme="light"] .cg-modal .cg-subpanel .text-slate-500 {
+  color: #81796f !important;
+}
+
+
+/* ---------- EVIDENCE / VOICE KPI CARDS ---------- */
+
+html[data-theme="light"] .cg-modal .cg-kpi-card {
+  background: #e4dfd6 !important;
+  border: 1px solid #c9c0b4 !important;
+  border-radius: 8px !important;
+  color: #292722 !important;
+}
+
+html[data-theme="light"] .cg-modal .cg-kpi-card p {
+  color: #5f5951 !important;
+}
+
+html[data-theme="light"] .cg-modal .cg-kpi-card .cg-kpi-value {
+  color: #a9682f !important;
+}
+
+
+/* ---------- PHOTO / VOICE BUTTONS ---------- */
+
+html[data-theme="light"] .cg-modal button {
+  color: #292722;
+}
+
+html[data-theme="light"] .cg-modal .cg-button {
+  background: #fffdf7 !important;
+  border-color: #d1c7b7 !important;
+  color: #374151 !important;
+}
+
+html[data-theme="light"] .cg-modal .cg-button:hover {
+  background: #f3eee5 !important;
+  border-color: #a9682f !important;
+}
+
+
+/* ---------- SAVE INSPECTION BUTTON ---------- */
+
+html[data-theme="light"] .cg-modal .cg-button-primary {
+  background: #d97706 !important;
+  border-color: #d97706 !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="light"] .cg-modal .cg-button-primary:hover {
+  background: #b45309 !important;
+  border-color: #b45309 !important;
+}
+
+
+/* ---------- CANCEL BUTTON ---------- */
+
+html[data-theme="light"] .cg-modal .cg-button-secondary {
+  background: #fffdf7 !important;
+  border-color: #d1c7b7 !important;
+  color: #374151 !important;
+}
+
+html[data-theme="light"] .cg-modal .cg-button-secondary:hover {
+  background: #f3eee5 !important;
+}
+/* =========================================================
+   COALGUARD — LIGHT MODE DASHBOARD
+   Consistent cream / beige dashboard across roles
+   ========================================================= */
+
+/* Main dashboard */
+html[data-theme="light"] .cg-inspector-shell,
+html[data-theme="light"] .cg-manager-shell,
+html[data-theme="light"] .cg-admin-shell {
+  background: #f3eee5 !important;
+  color: #292722 !important;
+}
+
+/* Sidebar */
+html[data-theme="light"] .cg-inspector-sidebar,
+html[data-theme="light"] .cg-sidebar {
+  background: #e9e1d5 !important;
+  border-color: #d7cec0 !important;
+  color: #292722 !important;
+}
+
+/* Sidebar heading */
+html[data-theme="light"] .cg-inspector-sidebar-title,
+html[data-theme="light"] .cg-sidebar-title {
+  border-color: #d7cec0 !important;
+}
+
+html[data-theme="light"] .cg-inspector-sidebar-title strong,
+html[data-theme="light"] .cg-sidebar-title strong {
+  color: #292722 !important;
+}
+
+/* Sidebar navigation */
+html[data-theme="light"] .cg-inspector-nav-item,
+html[data-theme="light"] .cg-sidebar-item {
+  color: #5f5951 !important;
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+/* Sidebar hover */
+html[data-theme="light"] .cg-inspector-nav-item:hover,
+html[data-theme="light"] .cg-sidebar-item:hover {
+  background: #e4dbcc !important;
+  color: #292722 !important;
+}
+
+/* Active sidebar item */
+html[data-theme="light"] .cg-inspector-nav-item.is-active,
+html[data-theme="light"] .cg-sidebar-item.active {
+  background: #ddd3c5 !important;
+  color: #a9682f !important;
+  border-color: #b9824a !important;
+}
+
+/* Sidebar icons */
+html[data-theme="light"] .cg-inspector-nav-icon,
+html[data-theme="light"] .cg-sidebar-item span {
+  color: #6d675f !important;
+}
+
+/* New Inspection button */
+html[data-theme="light"] .cg-inspector-start-button {
+  background: #d6a32f !important;
+  border-color: #d6a32f !important;
+  color: #1f1b16 !important;
+}
+
+html[data-theme="light"] .cg-inspector-start-button:hover {
+  background: #b9824a !important;
+  border-color: #b9824a !important;
+}
+
+/* Main hero/dashboard card */
+html[data-theme="light"] .cg-hero {
+  background: #e8e2d8 !important;
+  border-color: #d2c8ba !important;
+  color: #292722 !important;
+}
+
+/* Hero text */
+html[data-theme="light"] .cg-hero-title {
+  color: #292722 !important;
+}
+
+html[data-theme="light"] .cg-hero-copy {
+  color: #6d675f !important;
+}
+
+html[data-theme="light"] .cg-eyebrow {
+  color: #a9682f !important;
+}
+
+/* Primary dashboard button */
+html[data-theme="light"] .cg-hero-button {
+  background: #c97824 !important;
+  border-color: #c97824 !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="light"] .cg-hero-button:hover {
+  background: #a9682f !important;
+  border-color: #a9682f !important;
+}
+
+/* Secondary dashboard button */
+html[data-theme="light"] .cg-hero-secondary {
+  background: #242826 !important;
+  border-color: #242826 !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="light"] .cg-hero-secondary:hover {
+  background: #343936 !important;
+}
+
+/* System status card */
+html[data-theme="light"] .cg-panel {
+  background: #fbf8f2 !important;
+  border-color: #d7cec0 !important;
+  color: #292722 !important;
+}
+
+/* Panel header */
+html[data-theme="light"] .cg-panel-header {
+  background: #eee7dc !important;
+  border-color: #d7cec0 !important;
+}
+
+/* Dashboard cards */
+html[data-theme="light"] .cg-tool-card,
+html[data-theme="light"] .cg-note-card,
+html[data-theme="light"] .cg-kpi-card {
+  background: #fbf8f2 !important;
+  border-color: #d7cec0 !important;
+  color: #292722 !important;
+}
+
+/* Dashboard card hover */
+html[data-theme="light"] .cg-tool-card:hover,
+html[data-theme="light"] .cg-note-card:hover {
+  background: #f0e9de !important;
+  border-color: #b9824a !important;
+}
+
+/* Card titles */
+html[data-theme="light"] .cg-tool-title,
+html[data-theme="light"] .cg-note-title {
+  color: #292722 !important;
+}
+
+/* Card descriptions */
+html[data-theme="light"] .cg-tool-desc,
+html[data-theme="light"] .cg-note-desc {
+  color: #6d675f !important;
+}
+
+/* Icons */
+html[data-theme="light"] .cg-tool-icon {
+  background: #eee7db !important;
+  border-color: #d7cec0 !important;
+  color: #a9682f !important;
+}
+
+/* Footer */
+html[data-theme="light"] .cg-footer {
+  border-color: #d7cec0 !important;
+  color: #6d675f !important;
+}
+/* =========================================================
+   INSPECTOR — STATUS MESSAGE
+   ========================================================= */
+
+.cg-message {
+  margin-top: 16px;
+  padding: 12px 14px;
+
+  background: #eee7dc;
+  border: 1px solid #cfc5b8;
+  border-left: 4px solid #a9682f;
+
+  color: #292722;
+
+  border-radius: 10px;
+
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+
+  word-break: break-word;
+}
+
+/* Light theme */
+html[data-theme="light"] .cg-message {
+  background: #eee7dc !important;
+  border-color: #cfc5b8 !important;
+  border-left-color: #a9682f !important;
+  color: #292722 !important;
+}
+
+/* Dark theme */
+html:not([data-theme="light"]) .cg-message {
+  background: #171c1e;
+  border-color: #3a4244;
+  border-left-color: #c7823d;
+  color: #e7e2d8;
+}
